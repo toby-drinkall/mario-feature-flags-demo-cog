@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
-    <script src="devin-api-config.js?v=3"></script>
+    <script src="devin-api-config.js?v=1766138600"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -564,6 +564,15 @@
 
         function isDevinAPIConfigured() {
             return window.DevinAPI && window.DevinAPI.isConfigured && window.DevinAPI.isConfigured();
+        }
+
+        // Check server status asynchronously
+        async function checkServerAPIStatus() {
+            if (window.DevinAPI && window.DevinAPI.checkServerStatus) {
+                const status = await window.DevinAPI.checkServerStatus();
+                return status;
+            }
+            return { configured: false, mode: 'simulation', message: 'Simulation Mode' };
         }
 
         // API Configuration Modal Component
@@ -1214,6 +1223,15 @@
             const [prStatuses, setPrStatuses] = useState({});
             const [showAPIConfig, setShowAPIConfig] = useState(false);
             const [apiConfigured, setApiConfigured] = useState(isDevinAPIConfigured());
+            const [apiStatusMessage, setApiStatusMessage] = useState('Checking...');
+
+            // Check server API status on load
+            useEffect(() => {
+                checkServerAPIStatus().then(status => {
+                    setApiConfigured(status.configured || isDevinAPIConfigured());
+                    setApiStatusMessage(status.message || (status.configured ? 'Devin API Ready' : 'Simulation Mode'));
+                });
+            }, []);
 
             // Check PR merge status periodically
             useEffect(() => {

@@ -1,50 +1,104 @@
 // Devin API Configuration
-// API key is stored in localStorage for security - not committed to git
-// Use DevinAPI.configure(apiKey) to set your API key
+// API key can be configured server-side via .env file (DEVIN_API_KEY)
+// or client-side via localStorage (fallback)
 
 const DevinAPI = {
-    // API Configuration - key loaded from localStorage
+    // API Configuration
     // Uses local proxy at /api/devin/ to avoid CORS issues
     config: {
         apiUrl: '/api/devin',  // Local proxy endpoint
-        get apiKey() {
-            return localStorage.getItem('devin_api_key') || 'YOUR_API_KEY';
-        },
         timeout: 300000, // 5 minutes max per operation
         repository: 'https://github.com/toby-drinkall/mario-feature-flags-demo-cog.git',
+        // Server status cache
+        _serverStatus: null,
+        _serverStatusChecked: false,
     },
 
-    // Configure API key (stores in localStorage)
+    // Check server status (cached)
+    async checkServerStatus() {
+        if (this.config._serverStatusChecked) {
+            return this.config._serverStatus;
+        }
+        try {
+            const response = await fetch(`${this.config.apiUrl}/_status`);
+            const data = await response.json();
+            this.config._serverStatus = data;
+            this.config._serverStatusChecked = true;
+            return data;
+        } catch (error) {
+            console.log('Server status check failed, using simulation mode');
+            this.config._serverStatus = { configured: false, mode: 'simulation', message: 'Simulation Mode' };
+            this.config._serverStatusChecked = true;
+            return this.config._serverStatus;
+        }
+    },
+
+    // Check if API is configured (server-side or client-side)
+    async isConfiguredAsync() {
+        const status = await this.checkServerStatus();
+        return status.configured;
+    },
+
+    // Synchronous check (uses cached status or localStorage fallback)
+    isConfigured() {
+        // If server status is cached and configured, use that
+        if (this.config._serverStatusChecked && this.config._serverStatus?.configured) {
+            return true;
+        }
+        // Fallback to localStorage check
+        const key = localStorage.getItem('devin_api_key');
+        return key && key !== 'YOUR_API_KEY' && key.length > 10;
+    },
+
+    // Get current mode (api or simulation)
+    getMode() {
+        if (this.config._serverStatusChecked) {
+            return this.config._serverStatus?.mode || 'simulation';
+        }
+        return this.isConfigured() ? 'api' : 'simulation';
+    },
+
+    // Get status message
+    getStatusMessage() {
+        if (this.config._serverStatusChecked) {
+            return this.config._serverStatus?.message || 'Simulation Mode';
+        }
+        return this.isConfigured() ? 'Devin API Ready' : 'Simulation Mode';
+    },
+
+    // Configure API key (stores in localStorage - fallback method)
     configure(apiKey) {
         localStorage.setItem('devin_api_key', apiKey);
         console.log('Devin API key configured successfully');
     },
 
-    // Check if API is configured
-    isConfigured() {
-        const key = this.config.apiKey;
-        return key && key !== 'YOUR_API_KEY' && key.length > 10;
-    },
-
     // Clear API key
     clearConfig() {
         localStorage.removeItem('devin_api_key');
+        this.config._serverStatusChecked = false;
+        this.config._serverStatus = null;
         console.log('Devin API key cleared');
     },
 
     // Create a new Devin session
     async createSession(sessionConfig) {
-        if (!this.isConfigured()) {
-            throw new Error('Devin API key not configured. Use DevinAPI.configure(apiKey) to set it.');
+        // Check server status first
+        const status = await this.checkServerStatus();
+        if (!status.configured && !this.isConfigured()) {
+            throw new Error('Devin API not configured. Set DEVIN_API_KEY in .env file.');
         }
 
         try {
+            // Build headers - only include API key if we have a client-side one
+            const headers = { 'Content-Type': 'application/json' };
+            const clientKey = localStorage.getItem('devin_api_key');
+            if (clientKey && clientKey !== 'YOUR_API_KEY') {
+                headers['X-Devin-Api-Key'] = clientKey;
+            }
+
             const response = await fetch(`${this.config.apiUrl}/sessions`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Devin-Api-Key': this.config.apiKey,
-                },
+                headers,
                 body: JSON.stringify({
                     ...sessionConfig,
                     idempotent: true,
@@ -67,17 +121,17 @@ const DevinAPI = {
 
     // Send a message to Devin session
     async sendMessage(sessionId, message) {
-        if (!this.isConfigured()) {
-            throw new Error('Devin API key not configured.');
-        }
-
         try {
+            // Build headers - only include API key if we have a client-side one
+            const headers = { 'Content-Type': 'application/json' };
+            const clientKey = localStorage.getItem('devin_api_key');
+            if (clientKey && clientKey !== 'YOUR_API_KEY') {
+                headers['X-Devin-Api-Key'] = clientKey;
+            }
+
             const response = await fetch(`${this.config.apiUrl}/session/${sessionId}/message`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Devin-Api-Key': this.config.apiKey,
-                },
+                headers,
                 body: JSON.stringify({ message })
             });
 
@@ -97,15 +151,16 @@ const DevinAPI = {
 
     // Get session status
     async getSessionStatus(sessionId) {
-        if (!this.isConfigured()) {
-            throw new Error('Devin API key not configured.');
-        }
-
         try {
+            // Build headers - only include API key if we have a client-side one
+            const headers = {};
+            const clientKey = localStorage.getItem('devin_api_key');
+            if (clientKey && clientKey !== 'YOUR_API_KEY') {
+                headers['X-Devin-Api-Key'] = clientKey;
+            }
+
             const response = await fetch(`${this.config.apiUrl}/session/${sessionId}`, {
-                headers: {
-                    'X-Devin-Api-Key': this.config.apiKey,
-                }
+                headers
             });
 
             if (!response.ok) {

@@ -1,16 +1,35 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = 8000;
 const DEVIN_API_URL = 'https://api.devin.ai/v1';
+
+// Load environment variables from .env file if it exists
+function loadEnvFile() {
+    const envPath = path.join(__dirname, '.env');
+    if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, 'utf8');
+        envContent.split('\n').forEach(line => {
+            const match = line.match(/^([^=]+)=(.*)$/);
+            if (match && !process.env[match[1]]) {
+                process.env[match[1]] = match[2].trim();
+            }
+        });
+    }
+}
+loadEnvFile();
+
+// Get the server-side API key from environment
+const SERVER_API_KEY = process.env.DEVIN_API_KEY;
 
 // Parse JSON bodies
 app.use(express.json());
 
 // Disable caching for JavaScript files to ensure fresh code is always loaded
 app.use((req, res, next) => {
-    if (req.path.endsWith('.js')) {
+    if (req.path.endsWith('.js') || req.path.endsWith('.html')) {
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.set('Pragma', 'no-cache');
         res.set('Expires', '0');
@@ -21,17 +40,27 @@ app.use((req, res, next) => {
 // Serve static files from Source directory
 app.use(express.static(path.join(__dirname, 'Source')));
 
+// Status endpoint - check if API is configured server-side
+app.get('/api/devin/_status', (req, res) => {
+    const configured = !!SERVER_API_KEY && SERVER_API_KEY.length > 10;
+    res.json({ 
+        configured,
+        mode: configured ? 'api' : 'simulation',
+        message: configured ? 'Devin API Ready' : 'Simulation Mode'
+    });
+});
+
 // Proxy endpoint for Devin API
 // Frontend calls /api/devin/* and we forward to https://api.devin.ai/v1/*
 app.all('/api/devin/*', async (req, res) => {
     const apiPath = req.params[0]; // Everything after /api/devin/
     const targetUrl = `${DEVIN_API_URL}/${apiPath}`;
     
-    // Get the API key from the request header
-    const apiKey = req.headers['x-devin-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+    // Use server-side API key if available, otherwise fall back to request header
+    const apiKey = SERVER_API_KEY || req.headers['x-devin-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
     
     if (!apiKey) {
-        return res.status(401).json({ error: 'API key required. Send via X-Devin-Api-Key header.' });
+        return res.status(401).json({ error: 'API key not configured. Create a .env file with DEVIN_API_KEY=your_key' });
     }
 
     try {
