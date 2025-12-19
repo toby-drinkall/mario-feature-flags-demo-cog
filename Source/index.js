@@ -12,11 +12,26 @@ document.onreadystatechange = function (event) {
 
     console.log("It took " + (Date.now() - time) + " milliseconds to start."), UserWrapper.displayHelpMenu();
 
+    // FEATURE FLAG: PERFORMANCE_HUD - Start
+    // Initialize Performance HUD tracking
+    if (typeof window.PerformanceHUD !== 'undefined') {
+        window.PerformanceHUD.initialize();
+        console.log('✓ Performance HUD initialized');
+    }
+    // FEATURE FLAG: PERFORMANCE_HUD - End
+
     // Wait a moment for FSM to be fully initialized, then mark as running
     setTimeout(function() {
         if (window.FSM && window.FSM.ModAttacher) {
             localStorage.setItem('FSM::game::running', 'true');
             console.log('✓ Game marked as running. FSM.ModAttacher available.');
+
+            // FEATURE FLAG: PERFORMANCE_HUD - Start
+            // Start HUD updates when game is ready
+            if (typeof window.PerformanceHUD !== 'undefined') {
+                window.PerformanceHUD.startUpdates();
+            }
+            // FEATURE FLAG: PERFORMANCE_HUD - End
         } else {
             console.error('✗ FSM not available after initialization');
         }
