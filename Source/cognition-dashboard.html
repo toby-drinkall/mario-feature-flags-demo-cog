@@ -192,7 +192,7 @@
         <div class="header">
             <h1>🧠 Cognition Demo Dashboard</h1>
             <p>Control and manage game modifications in real-time</p>
-            <a href="index.html" class="game-link" target="_blank" id="gameLink">🎮 Open Game</a>
+            <a href="index.html" class="game-link" id="gameLink" onclick="openGameWindow(event); return false;">🎮 Open Game</a>
             <div id="connectionStatus" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;">
                 <span id="statusText"></span>
             </div>
@@ -219,20 +219,41 @@
     <script>
         // Track game window reference
         let gameWindow = null;
-        let checkInterval = null;
 
-        // Find existing game window
-        function findGameWindow() {
-            // Try to find window by checking all open windows
-            // This works if game is already open in another tab
-            return null; // Can't directly access other tabs for security
+        // Open game in a popup window that we can control
+        function openGameWindow(event) {
+            if (event) event.preventDefault();
+
+            // Open game in a new window that we can access
+            gameWindow = window.open(
+                'index.html',
+                'FullScreenMario',
+                'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no'
+            );
+
+            // Check when game is loaded
+            if (gameWindow) {
+                const checkLoaded = setInterval(function() {
+                    try {
+                        if (gameWindow.FSM && gameWindow.FSM.ModAttacher) {
+                            console.log('✓ Game window loaded and FSM available');
+                            updateConnectionStatus();
+                            clearInterval(checkLoaded);
+                        }
+                    } catch (e) {
+                        // Can't access yet, keep trying
+                    }
+                }, 100);
+            }
         }
 
         // Check if we can communicate with game
         function checkGameConnection() {
-            // Check localStorage for game presence
-            const gameRunning = localStorage.getItem('FSM::game::running');
-            return gameRunning === 'true';
+            try {
+                return gameWindow && !gameWindow.closed && gameWindow.FSM && gameWindow.FSM.ModAttacher;
+            } catch (e) {
+                return false;
+            }
         }
 
         // Update connection status
@@ -241,14 +262,13 @@
             const statusText = document.getElementById('statusText');
             const isConnected = checkGameConnection();
 
+            statusDiv.style.display = 'block';
             if (isConnected) {
-                statusDiv.style.display = 'block';
                 statusDiv.style.background = '#d4edda';
-                statusText.textContent = '✓ Connected to Game';
+                statusText.textContent = '✓ Connected to Game - Real-time control active';
             } else {
-                statusDiv.style.display = 'block';
                 statusDiv.style.background = '#fff3cd';
-                statusText.textContent = '⚠ Game not detected - Open game first, then toggle mods';
+                statusText.textContent = '⚠ Click "Open Game" button to enable real-time control';
             }
         }
 
@@ -351,32 +371,35 @@
 
         // Toggle mod
         function toggleMod(modName, toggleElement, cardElement) {
-            const currentState = getModState(modName);
-            const newState = !currentState;
-
-            console.log('Dashboard: Toggling mod:', modName, 'from', currentState, 'to', newState);
-
-            setModState(modName, newState);
-
-            // Trigger storage event for cross-tab communication
-            const command = {
-                action: 'toggleMod',
-                modName: modName,
-                enabled: newState,
-                timestamp: Date.now()
-            };
-            console.log('Dashboard: Sending command:', command);
-            localStorage.setItem('FSM::dashboard::command', JSON.stringify(command));
-
-            if (newState) {
-                toggleElement.classList.add('active');
-                cardElement.classList.add('active');
-            } else {
-                toggleElement.classList.remove('active');
-                cardElement.classList.remove('active');
+            // Check if game window is available
+            if (!checkGameConnection()) {
+                alert('Game window not connected! Click "Open Game" button first.');
+                return;
             }
 
-            updateStats();
+            try {
+                // DIRECT CALL - Same as original UI did!
+                console.log('Dashboard: Calling toggleMod directly:', modName);
+                gameWindow.FSM.ModAttacher.toggleMod(modName);
+
+                // Update UI to match
+                const newState = gameWindow.FSM.ModAttacher.getMod(modName).enabled;
+                setModState(modName, newState);
+
+                if (newState) {
+                    toggleElement.classList.add('active');
+                    cardElement.classList.add('active');
+                } else {
+                    toggleElement.classList.remove('active');
+                    cardElement.classList.remove('active');
+                }
+
+                updateStats();
+                console.log('✓ Mod toggled successfully to:', newState);
+            } catch (err) {
+                console.error('Error toggling mod:', err);
+                alert('Failed to toggle mod. Make sure game is running.');
+            }
         }
 
         // Update statistics
