@@ -1170,8 +1170,9 @@
                 // Check immediately
                 checkAllPRs();
 
-                // Then check every 30 seconds
-                const interval = setInterval(checkAllPRs, 30000);
+                // Then check every 2 minutes (to avoid GitHub API rate limits)
+                // 60 requests/hour limit = can check ~2 PRs at this rate
+                const interval = setInterval(checkAllPRs, 120000);
                 return () => clearInterval(interval);
             }, [removedFeatures, enabledFeatures]);
 
