@@ -354,15 +354,19 @@
             const currentState = getModState(modName);
             const newState = !currentState;
 
+            console.log('Dashboard: Toggling mod:', modName, 'from', currentState, 'to', newState);
+
             setModState(modName, newState);
 
             // Trigger storage event for cross-tab communication
-            localStorage.setItem('FSM::dashboard::command', JSON.stringify({
+            const command = {
                 action: 'toggleMod',
                 modName: modName,
                 enabled: newState,
                 timestamp: Date.now()
-            }));
+            };
+            console.log('Dashboard: Sending command:', command);
+            localStorage.setItem('FSM::dashboard::command', JSON.stringify(command));
 
             if (newState) {
                 toggleElement.classList.add('active');
