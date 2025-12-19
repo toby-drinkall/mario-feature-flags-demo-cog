@@ -15,11 +15,13 @@
     },
     "license": "MIT",
     "scripts": {
-        "dev": "npx http-server Source -p 8000 -o",
-        "start": "npx http-server Source -p 8000 -o"
+        "dev": "node dev-server.js",
+        "start": "node dev-server.js",
+        "dev:static": "npx http-server Source -p 8000 -o"
     },
     "devDependencies": {
         "chai": "~2.X",
+        "express": "^4.22.1",
         "grunt": "~0.4.X",
         "grunt-cli": "~0.1.X",
         "grunt-contrib-clean": "~0.6.X",
@@ -28,8 +30,8 @@
         "grunt-contrib-htmlmin": "~0.4.X",
         "grunt-contrib-uglify": "~0.8.X",
         "grunt-mocha-phantomjs": "~2.X",
-        "grunt-processhtml": "~0.3.X",
         "grunt-preprocess": "~5.X",
+        "grunt-processhtml": "~0.3.X",
         "grunt-tslint": "~2.4.X",
         "grunt-typescript": "~0.7.X",
         "grunt-zip": "~0.17.X",
