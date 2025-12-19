@@ -10,5 +10,24 @@ document.onreadystatechange = function (event) {
             "GameStartrConstructor": FullScreenMario.FullScreenMario
         }, FullScreenMario.FullScreenMario.settings.ui, true));
 
-    console.log("It took " + (Date.now() - time) + " milliseconds to start."), UserWrapper.displayHelpMenu()
+    console.log("It took " + (Date.now() - time) + " milliseconds to start."), UserWrapper.displayHelpMenu();
+
+    // Listen for dashboard commands via localStorage
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'FSM::dashboard::command' && e.newValue) {
+            try {
+                var command = JSON.parse(e.newValue);
+                if (command.action === 'toggleMod' && window.FSM && window.FSM.ModAttacher) {
+                    console.log('Dashboard command received:', command.modName, command.enabled ? 'ENABLE' : 'DISABLE');
+                    if (command.enabled) {
+                        window.FSM.ModAttacher.enableMod(command.modName);
+                    } else {
+                        window.FSM.ModAttacher.disableMod(command.modName);
+                    }
+                }
+            } catch (err) {
+                console.error('Error processing dashboard command:', err);
+            }
+        }
+    });
 };

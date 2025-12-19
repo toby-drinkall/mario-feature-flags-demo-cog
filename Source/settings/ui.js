@@ -314,17 +314,6 @@ FullScreenMario.FullScreenMario.settings.ui = {
                 });
             })(["left", "right", "up", "down", "sprint", "pause"])
         }, {
-            "title": "Mods!",
-            "generator": "OptionsButtons",
-            "keyActive": "enabled",
-            "assumeInactive": true,
-            "options": function (GameStarter) {
-                return GameStarter.ModAttacher.getMods();
-            },
-            "callback": function (GameStarter, schema, button) {
-                GameStarter.ModAttacher.toggleMod(button.getAttribute("value") || button.textContent);
-            }
-        }, {
             "title": "Editor",
             "generator": "LevelEditor",
             "maps": {

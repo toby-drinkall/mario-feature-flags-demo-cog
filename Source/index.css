@@ -6,7 +6,7 @@ html, body {
 }
 
 body {
-    background: black;
+    background: #4a0080;  /* Purple background to verify updates work */
     color: #fafafa;
     overflow-x: hidden;
     overflow-y: scroll;
