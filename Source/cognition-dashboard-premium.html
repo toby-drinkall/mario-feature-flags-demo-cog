@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
+    <script src="devin-api-config.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Dark mode */
+        .dark body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .dark body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(74, 86, 226, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .dark body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Light mode - Crisp and clean with strong contrast */
+        .light body {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #f1f3f5 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .light body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .light body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ensure content is above background patterns */
+        #root {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Dark mode cards */
+        .dark .glass-card {
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .dark .glass-card:hover {
+            background: rgba(26, 26, 46, 0.7);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Light mode cards */
+        .light .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.1),
+                0 1px 3px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .light .glass-card:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(0, 0, 0, 0.16);
+            transform: translateY(-2px);
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.12),
+                0 2px 6px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .badge-glow {
+            box-shadow: 0 0 20px currentColor;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Status badges - Light mode improvements */
+        .light .bg-emerald-500\/20 {
+            background: rgba(16, 185, 129, 0.15) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+        .light .text-emerald-400 {
+            color: #10b981 !important;
+            font-weight: 600;
+        }
+        .light .bg-emerald-400 {
+            background: #10b981 !important;
+        }
+
+        .light .bg-amber-500\/20 {
+            background: rgba(245, 158, 11, 0.15) !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+        }
+        .light .text-amber-400 {
+            color: #f59e0b !important;
+            font-weight: 600;
+        }
+        .light .bg-amber-400 {
+            background: #f59e0b !important;
+        }
+
+        .light .bg-blue-500\/20 {
+            background: rgba(59, 130, 246, 0.15) !important;
+            border-color: rgba(59, 130, 246, 0.3) !important;
+        }
+        .light .text-blue-400 {
+            color: #3b82f6 !important;
+            font-weight: 600;
+        }
+
+        .light .bg-gray-500\/20 {
+            background: rgba(100, 116, 139, 0.12) !important;
+            border-color: rgba(100, 116, 139, 0.25) !important;
+        }
+        .light .text-gray-400 {
+            color: #64748b !important;
+            font-weight: 600;
+        }
+
+        /* Primary gradient buttons - Enhanced for light mode */
+        .light .bg-gradient-to-r.from-blue-500 {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3),
+                        0 2px 6px rgba(139, 92, 246, 0.2);
+        }
+
+        .light .bg-gradient-to-r.from-blue-500:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35),
+                        0 3px 8px rgba(124, 58, 237, 0.25);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom scrollbar - Dark mode */
+        .dark ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Custom scrollbar - Light mode */
+        .light ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .light ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .light ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .light ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tab styles */
+        .dark .tab-button {
+            position: relative;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .dark .tab-button:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dark .tab-button.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+
+        .light .tab-button {
+            position: relative;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: rgba(15, 23, 42, 0.65);
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .light .tab-button:hover {
+            color: rgba(15, 23, 42, 0.95);
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .light .tab-button.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* Text colors */
+        .dark .text-primary { color: #fff; }
+        .dark .text-secondary { color: rgba(255, 255, 255, 0.7); }
+        .dark .text-tertiary { color: rgba(255, 255, 255, 0.5); }
+
+        .light .text-primary { color: #0f172a; }
+        .light .text-secondary { color: #475569; }
+        .light .text-tertiary { color: #94a3b8; }
+
+        /* Toggle switch - Dark mode */
+        .dark .toggle-track {
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .dark .toggle-track.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Toggle switch - Light mode */
+        .light .toggle-track {
+            width: 44px;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+        }
+
+        .light .toggle-track.active {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-color: transparent;
+            box-shadow: 0 0 16px rgba(79, 70, 229, 0.4),
+                        0 2px 8px rgba(79, 70, 229, 0.25);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-track.active .toggle-thumb {
+            left: 22px;
+        }
+
+        /* Category colors - Dark mode */
+        .dark .category-movement { color: #c084fc; }
+        .dark .category-visual { color: #22d3ee; }
+        .dark .category-gameplay { color: #fb923c; }
+        .dark .category-character { color: #f472b6; }
+
+        /* Category colors - Light mode (vibrant neon) */
+        .light .category-movement { color: #a855f7; font-weight: 600; }
+        .light .category-visual { color: #06b6d4; font-weight: 600; }
+        .light .category-gameplay { color: #f97316; font-weight: 600; }
+        .light .category-character { color: #ec4899; font-weight: 600; }
+
+        /* Button colors - Light mode adjustments */
+        .light .btn-remove {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        .light .btn-remove:hover {
+            color: #dc2626;
+            background: rgba(239, 68, 68, 0.12);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        }
+
+        .light .btn-recover {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .light .btn-recover:hover {
+            color: #2563eb;
+            background: rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Stats number colors - make blue and red more vibrant in light mode */
+        .light .stat-blue { color: #3b82f6; }
+        .light .stat-red { color: #ef4444; }
+
+        /* Enable button - styled like Remove but blue */
+        .dark .btn-enable {
+            color: #60a5fa;
+        }
+        .dark .btn-enable:hover {
+            color: #93c5fd;
+            background: rgba(96, 165, 250, 0.1);
+        }
+
+        .light .btn-enable {
+            color: #2563eb;
+        }
+        .light .btn-enable:hover {
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Disable button - neon orange */
+        .dark .btn-disable {
+            color: #fb923c;
+        }
+        .dark .btn-disable:hover {
+            color: #fdba74;
+            background: rgba(251, 146, 60, 0.1);
+        }
+
+        .light .btn-disable {
+            color: #ea580c;
+        }
+        .light .btn-disable:hover {
+            color: #c2410c;
+            background: rgba(234, 88, 12, 0.1);
+        }
+
+        /* Mario Bros title */
+        .mario-title {
+            font-family: 'Press Start 2P', 'Press Start', cursive, monospace;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow:
+                3px 3px 0 #8b0000,
+                4px 4px 0 #000,
+                -1px -1px 0 #ff6b6b,
+                1px 1px 0 #ff6b6b;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .dark .mario-title {
+            color: #ff0000;
+        }
+
+        .light .mario-title {
+            color: #dc2626;
+            text-shadow:
+                2px 2px 0 #7f1d1d,
+                3px 3px 0 #000,
+                -1px -1px 0 #fca5a5,
+                1px 1px 0 #fca5a5;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = window.framerMotion || {};
+
+        // Lucide icons setup
+        lucide.createIcons();
+
+        // Theme management
+        const useTheme = () => {
+            const [isDark, setIsDark] = useState(() => {
+                const saved = localStorage.getItem('theme');
+                return saved ? saved === 'dark' : false;
+            });
+
+            useEffect(() => {
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                document.documentElement.classList.toggle('dark', isDark);
+                document.documentElement.classList.toggle('light', !isDark);
+            }, [isDark]);
+
+            return [isDark, setIsDark];
+        };
+
+        // Feature data
+        const modsData = [
+            { name: "Bouncy Bounce", description: "Mario landing causes him to jump.", file: "Source/settings/mods.js", lineStart: 5, lineEnd: 35, lines: 31, category: "movement" },
+            { name: "Dark is the Night", description: "Dark theme visual.", file: "Source/settings/mods.js", lineStart: 37, lineEnd: 82, lines: 46, category: "visual" },
+            { name: "Earthquake!", description: "Mario landing causes everything to jump.", file: "Source/settings/mods.js", lineStart: 84, lineEnd: 158, lines: 75, category: "movement" },
+            { name: "Gradient Skies", description: "Smooth gradient backgrounds.", file: "Source/settings/mods.js", lineStart: 160, lineEnd: 245, lines: 86, category: "visual" },
+            { name: "Hard Mode", description: "Harder enemies and faster gameplay.", file: "Source/settings/mods.js", lineStart: 247, lineEnd: 338, lines: 92, category: "gameplay" },
+            { name: "High Speed", description: "Mario runs 14x faster.", file: "Source/settings/mods.js", lineStart: 340, lineEnd: 372, lines: 33, category: "movement" },
+            { name: "Infinite Lives", description: "Lives never decrease.", file: "Source/settings/mods.js", lineStart: 374, lineEnd: 410, lines: 37, category: "gameplay" },
+            { name: "Invincibility", description: "Permanent star power.", file: "Source/settings/mods.js", lineStart: 412, lineEnd: 440, lines: 29, category: "gameplay" },
+            { name: "Parallax Clouds", description: "Clouds scroll at 70% speed.", file: "Source/settings/mods.js", lineStart: 442, lineEnd: 456, lines: 15, category: "visual" },
+            { name: "Low Gravity", description: "Reduced gravity.", file: "Source/settings/mods.js", lineStart: 458, lineEnd: 474, lines: 17, category: "movement" },
+            { name: "Luigi", description: "Play as Luigi.", file: "Source/settings/mods.js", lineStart: 476, lineEnd: 507, lines: 32, category: "character" },
+            { name: "Tilt Gravity", description: "Device motion controls gravity.", file: "Source/settings/mods.js", lineStart: 509, lineEnd: 550, lines: 42, category: "movement" },
+            { name: "Palette Swap", description: "Random color palettes.", file: "Source/settings/mods.js", lineStart: 552, lineEnd: 616, lines: 65, category: "visual" },
+            { name: "QCount", description: "Press Q to spawn enemies.", file: "Source/settings/mods.js", lineStart: 618, lineEnd: 689, lines: 72, category: "gameplay" },
+            { name: "Super Fireballs", description: "Fireballs destroy blocks.", file: "Source/settings/mods.js", lineStart: 691, lineEnd: 707, lines: 17, category: "gameplay" },
+            { name: "Trip of Acid", description: "Screen trails effect.", file: "Source/settings/mods.js", lineStart: 709, lineEnd: 733, lines: 25, category: "visual" }
+        ];
+
+        const removalSteps = [
+            { id: 'init', label: 'Initializing Devin session', duration: 800 },
+            { id: 'analyze', label: 'Analyzing codebase structure', duration: 1500 },
+            { id: 'backup', label: 'Creating feature backup', duration: 600 },
+            { id: 'remove', label: 'Removing feature flag code', duration: 2000 },
+            { id: 'test', label: 'Running test suite', duration: 3500 },
+            { id: 'branch', label: 'Creating git branch', duration: 800 },
+            { id: 'commit', label: 'Committing changes', duration: 1000 },
+            { id: 'pr', label: 'Creating Pull Request', duration: 1500 },
+            { id: 'docs', label: 'Updating documentation', duration: 800 }
+        ];
+
+        const recoverySteps = [
+            { id: 'init', label: 'Initializing Devin session', duration: 800 },
+            { id: 'load', label: 'Loading feature backup', duration: 1000 },
+            { id: 'analyze_pr', label: 'Analyzing removal PR', duration: 1200 },
+            { id: 'restore', label: 'Restoring feature code', duration: 2000 },
+            { id: 'test', label: 'Running test suite', duration: 3000 },
+            { id: 'branch', label: 'Creating recovery branch', duration: 800 },
+            { id: 'pr', label: 'Creating Pull Request', duration: 1500 }
+        ];
+
+        let prCounter = parseInt(localStorage.getItem('pr_counter') || '122');
+        function getNextPR() {
+            prCounter++;
+            localStorage.setItem('pr_counter', prCounter.toString());
+            return prCounter;
+        }
+
+        function isDevinAPIConfigured() {
+            const configured = window.DevinAPI &&
+                   window.DevinAPI.config.apiUrl !== 'YOUR_DEVIN_API_URL' &&
+                   window.DevinAPI.config.apiKey !== 'YOUR_API_KEY';
+            return configured;
+        }
+
+        // Components
+        function StatusBadge({ connected, devinIntegrated }) {
+            return (
+                <div className="flex items-center gap-3">
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+                        connected
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    }`}>
+                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 badge-glow' : 'bg-amber-400 animate-pulse'}`} />
+                        {connected ? 'Game Connected' : 'Waiting for Connection'}
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+                        devinIntegrated
+                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                    }`}>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/>
+                        </svg>
+                        {devinIntegrated ? 'Devin API Ready' : 'Simulation Mode'}
+                    </div>
+                </div>
+            );
+        }
+
+        function FeatureCard({ feature, enabled, onToggle, onRemove, connected }) {
+            const categoryColors = {
+                movement: 'category-movement',
+                visual: 'category-visual',
+                gameplay: 'category-gameplay',
+                character: 'category-character'
+            };
+
+            return (
+                <div className="glass-card rounded-2xl p-4 flex items-center justify-between group">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-sm font-semibold text-primary truncate">{feature.name}</h3>
+                            <span className={`text-[10px] uppercase tracking-wider ${categoryColors[feature.category]} opacity-70`}>
+                                {feature.category}
+                            </span>
+                        </div>
+                        <p className="text-xs text-secondary truncate">{feature.description}</p>
+                        <div className="text-[10px] text-tertiary mt-1">{feature.lines} lines</div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                        <div
+                            className={`toggle-track ${enabled ? 'active' : ''}`}
+                            onClick={() => connected && onToggle(feature.name)}
+                        >
+                            <div className="toggle-thumb" />
+                        </div>
+                        <button
+                            onClick={() => onRemove(feature)}
+                            className="px-3 py-1.5 text-xs font-medium btn-remove text-red-400 hover:text-red-300 hover:bg-red-500/10 dark:text-red-400 dark:hover:text-red-300 rounded-lg transition-all"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function RemovedFeatureCard({ feature, onRecover }) {
+            return (
+                <div className="glass-card rounded-2xl p-4">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-primary mb-1">{feature.name}</h3>
+                            <p className="text-xs text-tertiary mb-2">
+                                Removed {Math.floor((Date.now() - feature.removedAt) / 60000)} min ago
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-tertiary">
+                                <span>PR #{feature.prNumber}</span>
+                                <span>•</span>
+                                <span>{feature.lines} lines</span>
+                                <span>•</span>
+                                <span className="text-emerald-400">Tests passing</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => onRecover(feature)}
+                            className="px-3 py-1.5 text-xs font-medium btn-recover text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-all"
+                        >
+                            Recover
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function AutomationModal({ feature, type, onComplete, onCancel }) {
+            const [currentStep, setCurrentStep] = useState(-1);
+            const [sessionId, setSessionId] = useState(null);
+            const [subDetails, setSubDetails] = useState({});
+            const [prNumber, setPrNumber] = useState(null);
+            const [error, setError] = useState(null);
+            const [useRealAPI, setUseRealAPI] = useState(false);
+            const [isStopped, setIsStopped] = useState(false);
+            const steps = type === 'remove' ? removalSteps : recoverySteps;
+
+            useEffect(() => {
+                if (currentStep === -1 || isStopped) return;
+
+                const step = steps[currentStep];
+
+                if (useRealAPI) {
+                    // Real Devin API integration - handled in startAutomation
+                    // This useEffect just manages the step progression display
+                } else {
+                    // Simulation mode
+                    const timer = setTimeout(() => {
+                        if (isStopped) return;
+                        if (currentStep < steps.length - 1) {
+                            setCurrentStep(currentStep + 1);
+                        } else {
+                            setTimeout(() => onComplete(prNumber), 500);
+                        }
+                    }, step.duration);
+
+                    setTimeout(() => {
+                        if (isStopped) return;
+                        if (step.id === 'init') {
+                            setSubDetails(prev => ({ ...prev, [step.id]: [`Session ID: ${sessionId}`] }));
+                        } else if (step.id === 'analyze') {
+                            setSubDetails(prev => ({ ...prev, [step.id]: [
+                                'Found 1 feature flag definition',
+                                `Located in: ${feature.file}:${feature.lineStart}-${feature.lineEnd}`
+                            ]}));
+                        } else if (step.id === 'backup') {
+                            const backupId = `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}`;
+                            setSubDetails(prev => ({ ...prev, [step.id]: [
+                                `Backup: ${backupId}.json`,
+                                `Size: ${(feature.lines * 0.08).toFixed(1)} KB (${feature.lines} lines)`
+                            ]}));
+                        } else if (step.id === 'test') {
+                            setTimeout(() => {
+                                if (!isStopped) {
+                                    setSubDetails(prev => ({ ...prev, [step.id]: ['All 47 tests passing'] }));
+                                }
+                            }, 2500);
+                        } else if (step.id === 'pr') {
+                            setSubDetails(prev => ({ ...prev, [step.id]: [`PR #${prNumber}`] }));
+                        }
+                    }, step.duration / 3);
+
+                    return () => clearTimeout(timer);
+                }
+            }, [currentStep, useRealAPI, isStopped]);
+
+            const startAutomation = async () => {
+                const configured = isDevinAPIConfigured();
+                setUseRealAPI(configured);
+
+                if (configured) {
+                    // Real Devin API call
+                    try {
+                        setCurrentStep(0);
+
+                        if (type === 'remove') {
+                            // Call real Devin API to remove feature
+                            const result = await window.DevinAPI.removeFeatureFlag(feature);
+
+                            // Update UI with real results
+                            setSessionId(result.sessionId);
+                            setPrNumber(result.prNumber);
+                            setSubDetails({
+                                init: [`Session ID: ${result.sessionId}`],
+                                backup: [
+                                    `Backup: ${result.backupPath}`,
+                                    `Size: ${(feature.lines * 0.08).toFixed(1)} KB (${feature.lines} lines)`
+                                ],
+                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
+                            });
+
+                            // Progress through steps to completion
+                            for (let i = 0; i < steps.length; i++) {
+                                if (isStopped) break;
+                                setCurrentStep(i);
+                                await new Promise(resolve => setTimeout(resolve, 800));
+                            }
+
+                            if (!isStopped) {
+                                setTimeout(() => onComplete(result.prNumber), 500);
+                            }
+                        } else {
+                            // Call real Devin API to recover feature
+                            const result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber);
+
+                            setSessionId(result.sessionId);
+                            setPrNumber(result.prNumber);
+                            setSubDetails({
+                                init: [`Session ID: ${result.sessionId}`],
+                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
+                            });
+
+                            for (let i = 0; i < steps.length; i++) {
+                                if (isStopped) break;
+                                setCurrentStep(i);
+                                await new Promise(resolve => setTimeout(resolve, 800));
+                            }
+
+                            if (!isStopped) {
+                                setTimeout(() => onComplete(result.prNumber), 500);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Devin API error:', err);
+                        setError(err.message || 'Failed to communicate with Devin API');
+                        setCurrentStep(-1);
+                    }
+                } else {
+                    // Simulation mode
+                    setSessionId(`dvn_${Date.now()}`);
+                    setPrNumber(getNextPR());
+                    setCurrentStep(0);
+                }
+            };
+
+            const isComplete = currentStep === steps.length - 1;
+            const apiConfigured = isDevinAPIConfigured();
+
+            if (currentStep === -1) {
+                return (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
+                        <div className="glass-card rounded-3xl max-w-md w-full mx-4 p-6">
+                            <h2 className="text-xl font-semibold text-primary mb-4">
+                                {type === 'remove' ? 'Remove' : 'Recover'} "{feature.name}"?
+                            </h2>
+
+                            {error && (
+                                <div className="mb-4 p-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+                                    <div className="flex items-start gap-2">
+                                        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                        <div>
+                                            <div className="font-semibold mb-1">Error</div>
+                                            <div>{error}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={`mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                                apiConfigured
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}>
+                                <div className={`w-2 h-2 rounded-full ${apiConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                                {apiConfigured ? 'Real Devin API configured' : 'Running in simulation mode'}
+                            </div>
+
+                            <div className="space-y-2 mb-6">
+                                <p className="text-xs text-tertiary mb-3">Devin will execute:</p>
+                                {steps.slice(0, 6).map(step => (
+                                    <div key={step.id} className="flex items-center gap-2 text-xs text-secondary">
+                                        <div className="w-1 h-1 rounded-full bg-blue-400" />
+                                        {step.label}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={onCancel}
+                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 light:bg-slate-100 light:hover:bg-slate-200 rounded-xl transition-all border border-white/10 dark:border-white/10 light:border-slate-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={startAutomation}
+                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all shadow-lg"
+                                >
+                                    Start Automation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (isComplete) {
+                return (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
+                        <div className="glass-card rounded-3xl max-w-md w-full mx-4 p-6">
+                            <div className="text-center mb-6">
+                                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-xl font-semibold text-primary mb-2">
+                                    {type === 'remove' ? 'Feature Removed!' : 'Feature Recovered!'}
+                                </h2>
+                                <p className="text-sm text-tertiary">
+                                    Completed in {steps.reduce((sum, s) => sum + s.duration, 0) / 1000}s
+                                </p>
+                            </div>
+
+                            <div className="glass-card rounded-xl p-4 mb-4">
+                                <h3 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-2">Pull Request</h3>
+                                <p className="text-sm text-primary mb-1">#{prNumber} {type === 'remove' ? 'Remove' : 'Recover'} {feature.name}</p>
+                                <div className="grid grid-cols-3 gap-2 mt-3">
+                                    <div className="text-center">
+                                        <div className="text-lg font-semibold text-primary tabular-nums">1</div>
+                                        <div className="text-[10px] text-tertiary">Files</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-lg font-semibold text-red-400 tabular-nums">{type === 'remove' ? feature.lines : 0}</div>
+                                        <div className="text-[10px] text-tertiary">Removed</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-lg font-semibold text-emerald-400 tabular-nums">{type === 'recover' ? feature.lines : 0}</div>
+                                        <div className="text-[10px] text-tertiary">Added</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => onComplete(prNumber)}
+                                className="w-full px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="glass-card rounded-3xl max-w-2xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="text-xl font-semibold text-primary mb-1">
+                                    Devin is {type === 'remove' ? 'removing' : 'recovering'} "{feature.name}"
+                                </h2>
+                                <p className="text-xs text-tertiary">
+                                    {useRealAPI ? 'Using real Devin API' : 'Simulation mode'}
+                                </p>
+                            </div>
+                            <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full spinner" />
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                            {steps.map((step, idx) => {
+                                const status = idx < currentStep ? 'complete' : idx === currentStep ? 'active' : 'waiting';
+                                return (
+                                    <div key={step.id} className="fade-in">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                {status === 'complete' && (
+                                                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                {status === 'active' && (
+                                                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full spinner" />
+                                                )}
+                                                {status === 'waiting' && (
+                                                    <div className="w-5 h-5 bg-white/10 rounded-full" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className={`text-sm font-medium ${
+                                                    status === 'active' ? 'text-blue-400' :
+                                                    status === 'complete' ? 'text-secondary' :
+                                                    'text-tertiary'
+                                                }`}>
+                                                    {step.label}
+                                                </p>
+                                                {subDetails[step.id] && (
+                                                    <div className="mt-1 ml-3 space-y-0.5">
+                                                        {subDetails[step.id].map((detail, i) => (
+                                                            <p key={i} className="text-xs text-tertiary">└─ {detail}</p>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                setIsStopped(true);
+                                setTimeout(() => onCancel(), 300);
+                            }}
+                            disabled={isStopped}
+                            className={`w-full px-4 py-2.5 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2 ${
+                                isStopped
+                                    ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                                    : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 border border-red-500/30 hover:border-red-500/50'
+                            }`}
+                        >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
+                            </svg>
+                            {isStopped ? 'Stopping...' : 'Stop Automation'}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function Dashboard() {
+            const [isDark, setIsDark] = useTheme();
+            const [gameWindow, setGameWindow] = useState(null);
+            const [connected, setConnected] = useState(false);
+            const [modStates, setModStates] = useState({});
+            const [removedFeatures, setRemovedFeatures] = useState(() => {
+                const stored = localStorage.getItem('removed_features');
+                return stored ? JSON.parse(stored) : [];
+            });
+            const [activeModal, setActiveModal] = useState(null);
+            const [activeTab, setActiveTab] = useState('deployed');
+
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    try {
+                        if (!gameWindow || gameWindow.closed) {
+                            setConnected(false);
+                            return;
+                        }
+
+                        // Check if we can access the game window
+                        const hasFSM = !!gameWindow.FSM;
+                        const hasModAttacher = hasFSM && !!gameWindow.FSM.ModAttacher;
+                        const isConnected = hasModAttacher;
+
+                        console.log('Connection check:', {
+                            windowExists: !!gameWindow,
+                            windowClosed: gameWindow.closed,
+                            hasFSM,
+                            hasModAttacher,
+                            isConnected
+                        });
+
+                        setConnected(isConnected);
+                        if (isConnected) updateModStates(gameWindow);
+                    } catch (e) {
+                        console.error('Connection check error:', e.message);
+                        setConnected(false);
+                    }
+                }, 1000);
+                return () => clearInterval(interval);
+            }, [gameWindow]);
+
+            const openGame = () => {
+                console.log('Opening game window...');
+                const win = window.open('index.html', 'Mario Bros. for Cognition', 'width=1200,height=800');
+
+                if (!win) {
+                    console.error('Failed to open game window - popup may be blocked');
+                    return;
+                }
+
+                console.log('Game window opened, waiting for FSM to load...');
+                setGameWindow(win);
+
+                const checkLoaded = setInterval(() => {
+                    try {
+                        if (win.FSM && win.FSM.ModAttacher) {
+                            console.log('✓ Game loaded successfully, FSM.ModAttacher is available');
+                            clearInterval(checkLoaded);
+                            updateModStates(win);
+                        } else {
+                            console.log('Still waiting for FSM...', { hasFSM: !!win.FSM, hasModAttacher: !!(win.FSM && win.FSM.ModAttacher) });
+                        }
+                    } catch (e) {
+                        console.error('Error checking game load status:', e.message);
+                    }
+                }, 100);
+            };
+
+            const updateModStates = (win) => {
+                if (!win || !win.FSM) return;
+                const states = {};
+                modsData.filter(m => !removedFeatures.find(r => r.name === m.name)).forEach(mod => {
+                    try {
+                        const modData = win.FSM.ModAttacher.getMod(mod.name);
+                        states[mod.name] = modData ? modData.enabled : false;
+                    } catch (e) {
+                        states[mod.name] = false;
+                    }
+                });
+                setModStates(states);
+            };
+
+            const toggleMod = (modName) => {
+                if (!connected) return;
+                try {
+                    gameWindow.FSM.ModAttacher.toggleMod(modName);
+                    const newState = gameWindow.FSM.ModAttacher.getMod(modName).enabled;
+                    setModStates(prev => ({ ...prev, [modName]: newState }));
+                } catch (err) {
+                    console.error('Error toggling mod:', err);
+                }
+            };
+
+            const handleRemoveComplete = (feature, prNumber) => {
+                const removed = {
+                    ...feature,
+                    removedAt: Date.now(),
+                    prNumber,
+                    backupId: `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}.json`
+                };
+                const newRemoved = [...removedFeatures, removed];
+                setRemovedFeatures(newRemoved);
+                localStorage.setItem('removed_features', JSON.stringify(newRemoved));
+                setActiveModal(null);
+            };
+
+            const handleRecoverComplete = (feature, prNumber) => {
+                const newRemoved = removedFeatures.filter(r => r.name !== feature.name);
+                setRemovedFeatures(newRemoved);
+                localStorage.setItem('removed_features', JSON.stringify(newRemoved));
+                setActiveModal(null);
+            };
+
+            const activeFeatures = modsData.filter(m => !removedFeatures.find(r => r.name === m.name));
+            const enabledCount = Object.keys(modStates).filter(name => modStates[name]).length;
+            const devinIntegrated = isDevinAPIConfigured();
+
+            return (
+                <div className="min-h-screen p-6">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className="mb-8">
+                            <div className="flex items-start justify-between mb-4">
+                                <div>
+                                    <h1 className="mario-title">MARIO BROS.</h1>
+                                    <h2 className="text-2xl font-semibold text-primary mb-2">Feature Management</h2>
+                                    <p className="text-sm text-tertiary">Real-time control and automated removal</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setIsDark(!isDark)}
+                                        className="p-3 glass-card rounded-xl transition-all hover:scale-105"
+                                        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                                    >
+                                        {isDark ? (
+                                            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={openGame}
+                                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Launch Game
+                                    </button>
+                                </div>
+                            </div>
+                            <StatusBadge connected={connected} devinIntegrated={devinIntegrated} />
+                        </div>
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div
+                                className="glass-card rounded-2xl p-6 cursor-pointer hover:scale-[1.02] transition-transform"
+                                onClick={() => setActiveTab('deployed')}
+                            >
+                                <div className="text-4xl font-semibold text-primary tabular-nums mb-2">{activeFeatures.length}</div>
+                                <div className="text-xs text-tertiary uppercase tracking-wider">Active Features</div>
+                            </div>
+                            <div
+                                className="glass-card rounded-2xl p-6 cursor-pointer hover:scale-[1.02] transition-transform"
+                                onClick={() => setActiveTab('enabled')}
+                            >
+                                <div className="text-4xl font-semibold stat-blue text-blue-400 dark:text-blue-400 tabular-nums mb-2">{enabledCount}</div>
+                                <div className="text-xs text-tertiary uppercase tracking-wider">Currently Enabled</div>
+                            </div>
+                            <div
+                                className="glass-card rounded-2xl p-6 cursor-pointer hover:scale-[1.02] transition-transform"
+                                onClick={() => setActiveTab('removed')}
+                            >
+                                <div className="text-4xl font-semibold stat-red text-red-400 dark:text-red-400 tabular-nums mb-2">{removedFeatures.length}</div>
+                                <div className="text-xs text-tertiary uppercase tracking-wider">Removed</div>
+                            </div>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex gap-1 mb-6 border-b border-white/10 dark:border-white/10 light:border-slate-200">
+                            <button
+                                className={`tab-button ${activeTab === 'deployed' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('deployed')}
+                            >
+                                Feature Testing
+                            </button>
+                            <button
+                                className={`tab-button ${activeTab === 'enabled' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('enabled')}
+                            >
+                                Enabled Features
+                            </button>
+                            <button
+                                className={`tab-button ${activeTab === 'removed' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('removed')}
+                            >
+                                Removed Features
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        {activeTab === 'deployed' && (
+                            <div className="grid grid-cols-2 gap-3">
+                                {activeFeatures.map(feature => (
+                                    <FeatureCard
+                                        key={feature.name}
+                                        feature={feature}
+                                        enabled={modStates[feature.name] || false}
+                                        onToggle={toggleMod}
+                                        onRemove={(f) => setActiveModal({ type: 'remove', feature: f })}
+                                        connected={connected}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {activeTab === 'enabled' && (
+                            <div className="grid grid-cols-2 gap-3">
+                                {Object.keys(modStates).filter(name => modStates[name]).length === 0 ? (
+                                    <div className="glass-card rounded-2xl p-8 text-center col-span-2">
+                                        <p className="text-tertiary">No features are currently enabled</p>
+                                    </div>
+                                ) : (
+                                    activeFeatures.filter(f => modStates[f.name]).map(feature => (
+                                        <FeatureCard
+                                            key={feature.name}
+                                            feature={feature}
+                                            enabled={true}
+                                            onToggle={toggleMod}
+                                            onRemove={(f) => setActiveModal({ type: 'remove', feature: f })}
+                                            connected={connected}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'removed' && (
+                            <div className="space-y-3">
+                                {removedFeatures.length === 0 ? (
+                                    <div className="glass-card rounded-2xl p-8 text-center">
+                                        <p className="text-tertiary">No features have been removed yet</p>
+                                    </div>
+                                ) : (
+                                    removedFeatures.map(feature => (
+                                        <RemovedFeatureCard
+                                            key={feature.name}
+                                            feature={feature}
+                                            onRecover={(f) => setActiveModal({ type: 'recover', feature: f })}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {activeModal && (
+                        <AutomationModal
+                            feature={activeModal.feature}
+                            type={activeModal.type}
+                            onComplete={(prNumber) => {
+                                if (activeModal.type === 'remove') {
+                                    handleRemoveComplete(activeModal.feature, prNumber);
+                                } else {
+                                    handleRecoverComplete(activeModal.feature, prNumber);
+                                }
+                            }}
+                            onCancel={() => setActiveModal(null)}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Dashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

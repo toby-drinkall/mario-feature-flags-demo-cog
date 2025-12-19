@@ -22,40 +22,7 @@ document.onreadystatechange = function (event) {
         }
     }, 500);
 
-    // Listen for dashboard commands via localStorage
-    window.addEventListener('storage', function(e) {
-        console.log('Storage event detected:', e.key, e.newValue ? 'has value' : 'no value');
-
-        if (e.key === 'FSM::dashboard::command' && e.newValue) {
-            try {
-                var command = JSON.parse(e.newValue);
-                console.log('Parsed command:', command);
-
-                if (command.action === 'toggleMod') {
-                    if (window.FSM && window.FSM.ModAttacher) {
-                        console.log('✓ Executing:', command.modName, command.enabled ? 'ENABLE' : 'DISABLE');
-                        if (command.enabled) {
-                            window.FSM.ModAttacher.enableMod(command.modName);
-                        } else {
-                            window.FSM.ModAttacher.disableMod(command.modName);
-                        }
-                        // Send response back to dashboard
-                        localStorage.setItem('FSM::dashboard::response', JSON.stringify({
-                            success: true,
-                            modName: command.modName,
-                            enabled: command.enabled,
-                            timestamp: Date.now()
-                        }));
-                        console.log('✓ Mod toggled successfully');
-                    } else {
-                        console.error('✗ FSM or ModAttacher not available');
-                    }
-                }
-            } catch (err) {
-                console.error('✗ Error processing dashboard command:', err);
-            }
-        }
-    });
+    // Mark game as running (no longer need storage event listeners since dashboard directly reloads the window)
 
     // Clean up on page unload
     window.addEventListener('beforeunload', function() {

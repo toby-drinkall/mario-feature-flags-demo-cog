@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devin API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Devin API Test Suite</h1>
+        <p>Use this page to test your Devin API configuration and connectivity.</p>
+
+        <!-- Configuration Check -->
+        <div class="test-section">
+            <h3>1. Configuration Check</h3>
+            <p>Verify that the API configuration is loaded and valid.</p>
+            <button onclick="testConfiguration()">Check Configuration</button>
+            <div id="config-result"></div>
+        </div>
+
+        <!-- Session Creation Test -->
+        <div class="test-section">
+            <h3>2. Session Creation Test</h3>
+            <p>Test creating a new Devin session.</p>
+            <button onclick="testCreateSession()">Create Session</button>
+            <div id="session-result"></div>
+        </div>
+
+        <!-- Task Execution Test -->
+        <div class="test-section">
+            <h3>3. Task Execution Test</h3>
+            <p>Test executing a simple task (requires session from step 2).</p>
+            <button onclick="testExecuteTask()">Execute Test Task</button>
+            <div id="task-result"></div>
+        </div>
+
+        <!-- Status Check Test -->
+        <div class="test-section">
+            <h3>4. Status Check Test</h3>
+            <p>Test polling for task status (requires task from step 3).</p>
+            <button onclick="testGetStatus()">Check Status</button>
+            <div id="status-result"></div>
+        </div>
+
+        <!-- Full Workflow Test -->
+        <div class="test-section">
+            <h3>5. Full Workflow Test</h3>
+            <p>Test complete feature removal workflow.</p>
+            <button onclick="testFullWorkflow()">Run Full Test</button>
+            <div id="workflow-result"></div>
+        </div>
+    </div>
+
+    <script src="devin-api-config.js"></script>
+    <script>
+        let testSessionId = null;
+        let testTaskId = null;
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${message}</div>`;
+        }
+
+        // Test 1: Configuration Check
+        function testConfiguration() {
+            const resultId = 'config-result';
+            showResult(resultId, 'Checking configuration...', 'info');
+
+            setTimeout(() => {
+                try {
+                    if (!window.DevinAPI) {
+                        showResult(resultId, '❌ ERROR: DevinAPI not loaded. Make sure devin-api-config.js is in the same directory.', 'error');
+                        return;
+                    }
+
+                    const config = window.DevinAPI.config;
+                    let issues = [];
+
+                    if (!config.apiUrl || config.apiUrl === 'YOUR_DEVIN_API_URL') {
+                        issues.push('- apiUrl is not configured');
+                    }
+                    if (!config.apiKey || config.apiKey === 'YOUR_API_KEY') {
+                        issues.push('- apiKey is not configured');
+                    }
+
+                    if (issues.length > 0) {
+                        showResult(resultId,
+                            `⚠️ Configuration issues found:\n${issues.join('\n')}\n\nPlease edit devin-api-config.js and set your API credentials.`,
+                            'warning'
+                        );
+                    } else {
+                        showResult(resultId,
+                            `✓ Configuration looks good!\n\nAPI URL: ${config.apiUrl}\nAPI Key: ${config.apiKey.substring(0, 15)}...\nTimeout: ${config.timeout}ms`,
+                            'success'
+                        );
+                    }
+                } catch (err) {
+                    showResult(resultId, `❌ ERROR: ${err.message}`, 'error');
+                }
+            }, 100);
+        }
+
+        // Test 2: Create Session
+        async function testCreateSession() {
+            const resultId = 'session-result';
+            showResult(resultId, 'Creating Devin session...', 'info');
+
+            try {
+                if (!window.DevinAPI) {
+                    throw new Error('DevinAPI not loaded');
+                }
+
+                const result = await window.DevinAPI.createSession({
+                    name: 'Test Session',
+                    repository: window.location.origin
+                });
+
+                testSessionId = result.sessionId;
+                showResult(resultId,
+                    `✓ Session created successfully!\n\nSession ID: ${testSessionId}`,
+                    'success'
+                );
+            } catch (err) {
+                showResult(resultId,
+                    `❌ Session creation failed:\n\n${err.message}\n\nCheck browser console for more details.`,
+                    'error'
+                );
+                console.error('Session creation error:', err);
+            }
+        }
+
+        // Test 3: Execute Task
+        async function testExecuteTask() {
+            const resultId = 'task-result';
+
+            if (!testSessionId) {
+                showResult(resultId, '⚠️ Please create a session first (Test 2)', 'warning');
+                return;
+            }
+
+            showResult(resultId, 'Executing test task...', 'info');
+
+            try {
+                const result = await window.DevinAPI.executeTask(testSessionId, {
+                    instruction: 'This is a test task. Please acknowledge receipt.',
+                    context: {
+                        testMode: true
+                    }
+                });
+
+                testTaskId = result.taskId;
+                showResult(resultId,
+                    `✓ Task executed successfully!\n\nTask ID: ${testTaskId}\nSession: ${testSessionId}`,
+                    'success'
+                );
+            } catch (err) {
+                showResult(resultId,
+                    `❌ Task execution failed:\n\n${err.message}`,
+                    'error'
+                );
+                console.error('Task execution error:', err);
+            }
+        }
+
+        // Test 4: Check Status
+        async function testGetStatus() {
+            const resultId = 'status-result';
+
+            if (!testSessionId || !testTaskId) {
+                showResult(resultId, '⚠️ Please create a session and execute a task first (Tests 2 & 3)', 'warning');
+                return;
+            }
+
+            showResult(resultId, 'Checking task status...', 'info');
+
+            try {
+                const result = await window.DevinAPI.getTaskStatus(testSessionId, testTaskId);
+
+                showResult(resultId,
+                    `✓ Status retrieved!\n\nState: ${result.state}\nTask: ${testTaskId}\n\nFull response:\n${JSON.stringify(result, null, 2)}`,
+                    'success'
+                );
+            } catch (err) {
+                showResult(resultId,
+                    `❌ Status check failed:\n\n${err.message}`,
+                    'error'
+                );
+                console.error('Status check error:', err);
+            }
+        }
+
+        // Test 5: Full Workflow
+        async function testFullWorkflow() {
+            const resultId = 'workflow-result';
+            showResult(resultId, 'Starting full workflow test...\n\nThis will test the complete feature removal process.', 'info');
+
+            try {
+                const testFeature = {
+                    name: 'Test Feature',
+                    file: 'test.js',
+                    lineStart: 1,
+                    lineEnd: 10,
+                    lines: 10
+                };
+
+                showResult(resultId, 'Step 1: Creating session...', 'info');
+                const result = await window.DevinAPI.removeFeatureFlag(testFeature);
+
+                showResult(resultId,
+                    `✓ Full workflow completed!\n\nSession ID: ${result.sessionId}\nPR Number: ${result.prNumber}\nBackup Path: ${result.backupPath}\nBranch: ${result.branch}`,
+                    'success'
+                );
+            } catch (err) {
+                showResult(resultId,
+                    `❌ Workflow failed:\n\n${err.message}\n\nCheck browser console for more details.`,
+                    'error'
+                );
+                console.error('Workflow error:', err);
+            }
+        }
+
+        // Auto-run configuration check on load
+        window.addEventListener('load', () => {
+            testConfiguration();
+        });
+    </script>
+</body>
+</html>

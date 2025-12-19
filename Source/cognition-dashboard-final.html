@@ -8,6 +8,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="devin-api-config.js"></script>
 
     <style>
         @keyframes spin {
@@ -94,26 +95,52 @@
             );
         }
 
+        // Check if Devin API is configured
+        function isDevinAPIConfigured() {
+            const configured = window.DevinAPI &&
+                   window.DevinAPI.config.apiUrl !== 'YOUR_DEVIN_API_URL' &&
+                   window.DevinAPI.config.apiKey !== 'YOUR_API_KEY';
+
+            if (configured) {
+                console.log('✓ Devin API is configured');
+                console.log('  API URL:', window.DevinAPI.config.apiUrl);
+                console.log('  API Key:', window.DevinAPI.config.apiKey.substring(0, 10) + '...');
+            } else {
+                console.log('⚠️ Devin API not configured - running in simulation mode');
+                console.log('  To enable real API: Edit devin-api-config.js and set apiUrl and apiKey');
+            }
+
+            return configured;
+        }
+
         // Automation Modal
         function AutomationModal({ feature, type, onComplete, onCancel }) {
             const [currentStep, setCurrentStep] = useState(-1);
-            const [sessionId] = useState(() => `dvn_${Date.now()}`);
+            const [sessionId, setSessionId] = useState(null);
             const [subDetails, setSubDetails] = useState({});
-            const [prNumber] = useState(getNextPR());
+            const [prNumber, setPrNumber] = useState(null);
+            const [error, setError] = useState(null);
+            const [useRealAPI, setUseRealAPI] = useState(false);
             const steps = type === 'remove' ? removalSteps : recoverySteps;
 
             useEffect(() => {
                 if (currentStep === -1) return;
 
                 const step = steps[currentStep];
-                const timer = setTimeout(() => {
-                    if (currentStep < steps.length - 1) {
-                        setCurrentStep(currentStep + 1);
-                    } else {
-                        // Complete
-                        setTimeout(() => onComplete(prNumber), 500);
-                    }
-                }, step.duration);
+
+                // If using real API, handle differently
+                if (useRealAPI) {
+                    runRealAPIStep(step);
+                } else {
+                    // Simulation mode
+                    const timer = setTimeout(() => {
+                        if (currentStep < steps.length - 1) {
+                            setCurrentStep(currentStep + 1);
+                        } else {
+                            // Complete
+                            setTimeout(() => onComplete(prNumber), 500);
+                        }
+                    }, step.duration);
 
                 // Add sub-details as step progresses
                 setTimeout(() => {
@@ -163,20 +190,87 @@
                     }
                 }, step.duration / 3);
 
-                return () => clearTimeout(timer);
-            }, [currentStep]);
+                    return () => clearTimeout(timer);
+                }
+            }, [currentStep, useRealAPI]);
 
-            const startAutomation = () => setCurrentStep(0);
+            // Real API step execution
+            const runRealAPIStep = async (step) => {
+                try {
+                    if (type === 'remove') {
+                        await runRealRemovalStep(step);
+                    } else {
+                        await runRealRecoveryStep(step);
+                    }
+
+                    // Move to next step after completion
+                    if (currentStep < steps.length - 1) {
+                        setCurrentStep(currentStep + 1);
+                    } else {
+                        setTimeout(() => onComplete(prNumber), 500);
+                    }
+                } catch (err) {
+                    console.error('API Error:', err);
+                    setError(err.message || 'API call failed');
+                }
+            };
+
+            // Real removal steps
+            const runRealRemovalStep = async (step) => {
+                if (step.id === 'init') {
+                    const result = await window.DevinAPI.createSession({
+                        name: `Remove ${feature.name} feature flag`,
+                        repository: window.location.origin,
+                    });
+                    setSessionId(result.sessionId);
+                    setSubDetails(prev => ({ ...prev, [step.id]: [`Session ID: ${result.sessionId}`] }));
+                }
+                // Add other removal steps as needed
+            };
+
+            // Real recovery steps
+            const runRealRecoveryStep = async (step) => {
+                if (step.id === 'init') {
+                    const result = await window.DevinAPI.createSession({
+                        name: `Recover ${feature.name} feature flag`,
+                        repository: window.location.origin,
+                    });
+                    setSessionId(result.sessionId);
+                    setSubDetails(prev => ({ ...prev, [step.id]: [`Session ID: ${result.sessionId}`] }));
+                }
+                // Add other recovery steps as needed
+            };
+
+            const startAutomation = () => {
+                // Check if we should use real API
+                const configured = isDevinAPIConfigured();
+                setUseRealAPI(configured);
+
+                // Initialize session ID and PR number for simulation mode
+                if (!configured) {
+                    setSessionId(`dvn_${Date.now()}`);
+                    setPrNumber(getNextPR());
+                }
+
+                setCurrentStep(0);
+            };
             const isComplete = currentStep === steps.length - 1;
 
             if (currentStep === -1) {
                 // Confirmation screen
+                const apiConfigured = isDevinAPIConfigured();
                 return (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 fade-in">
                         <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-6">
                             <h2 className="text-xl font-bold mb-4">
                                 {type === 'remove' ? 'Remove' : 'Recover'} "{feature.name}"?
                             </h2>
+
+                            {/* API Status Badge */}
+                            <div className={`mb-4 p-2 rounded text-xs font-medium ${apiConfigured ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                                {apiConfigured ? '✓ Real Devin API configured' : '⚠️ Running in simulation mode (configure API in devin-api-config.js)'}
+                            </div>
+
                             <div className="space-y-3 mb-6">
                                 <p className="text-sm text-gray-600">This will trigger Devin to:</p>
                                 {steps.slice(0, 6).map(step => (
@@ -268,9 +362,28 @@
                         <h2 className="text-xl font-bold mb-2">
                             Devin is {type === 'remove' ? 'removing' : 'recovering'} "{feature.name}"
                         </h2>
-                        <p className="text-sm text-gray-600 mb-6">
+                        <p className="text-sm text-gray-600 mb-2">
                             Started {Math.floor((currentStep + 1) * 1000 / 1000)} seconds ago
                         </p>
+                        {useRealAPI && (
+                            <p className="text-xs text-green-600 mb-4">Using real Devin API</p>
+                        )}
+                        {!useRealAPI && (
+                            <p className="text-xs text-yellow-600 mb-4">Simulation mode</p>
+                        )}
+
+                        {/* Error Display */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                                <p className="text-sm text-red-800">Error: {error}</p>
+                                <button
+                                    onClick={onCancel}
+                                    className="mt-2 text-xs text-red-600 hover:underline"
+                                >
+                                    Close and try again
+                                </button>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             {steps.map((step, idx) => {
