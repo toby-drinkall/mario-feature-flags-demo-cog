@@ -1459,13 +1459,13 @@
                 setIsProcessing(true);
                 setCurrentOperation({ type, feature });
                 
-                const useRealAPI = isDevinAPIConfigured();
+                const useRealAPI = await window.DevinAPI.isConfiguredAsync();
                 const operationName = type === 'remove' ? 'Removing' : 
                                      type === 'enable' ? 'Enabling' : 
                                      type === 'recover' ? 'Recovering' :
                                      'Returning to staging';
 
-                addMessage('assistant', `Starting ${type} operation for "${feature.name}"...\n\n${useRealAPI ? '🔗 Using Devin API' : '🎮 Simulation Mode'}`, { type: 'status' });
+                addMessage('assistant', `Starting ${type} operation for "${feature.name}"...\n\n${useRealAPI ? '🔗 **Using Real Devin API** - Devin will automate this task' : '🎮 Simulation Mode'}`, { type: 'status' });
 
                 const steps = type === 'remove' ? [
                     { id: 'init', label: 'Initializing Devin session', duration: 2000 },
@@ -1503,26 +1503,90 @@
                     { id: 'pr', label: 'Creating pull request', duration: 2000 }
                 ];
 
-                let progressContent = '';
-                
-                for (let i = 0; i < steps.length; i++) {
-                    const step = steps[i];
-                    progressContent = steps.map((s, idx) => {
-                        if (idx < i) return `✓ ${s.label}`;
-                        if (idx === i) return `⏳ ${s.label}...`;
-                        return `○ ${s.label}`;
-                    }).join('\n');
-                    
-                    addMessage('assistant', progressContent, { type: 'progress' });
-                    await new Promise(resolve => setTimeout(resolve, step.duration));
+                let prNumber, prUrl, branchName, sessionUrl;
+
+                if (useRealAPI) {
+                    try {
+                        let currentStep = 0;
+                        const updateProgress = (status) => {
+                            let statusText = status.status_enum || 'running';
+                            if (statusText === 'running' && currentStep < steps.length) {
+                                currentStep++;
+                            }
+                            const progressContent = steps.map((s, idx) => {
+                                if (idx < currentStep) return `✓ ${s.label}`;
+                                if (idx === currentStep) return `⏳ ${s.label}...`;
+                                return `○ ${s.label}`;
+                            }).join('\n');
+                            addMessage('assistant', progressContent + `\n\n_Devin status: ${statusText}_`, { type: 'progress' });
+                        };
+
+                        addMessage('assistant', steps.map((s, idx) => idx === 0 ? `⏳ ${s.label}...` : `○ ${s.label}`).join('\n'), { type: 'progress' });
+
+                        let result;
+                        if (type === 'remove') {
+                            result = await window.DevinAPI.removeFeatureFlag(feature, updateProgress);
+                        } else if (type === 'enable') {
+                            result = await window.DevinAPI.enableFeaturePermanently(feature, updateProgress);
+                        } else if (type === 'recover' || type === 'return-to-staging') {
+                            result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber, updateProgress);
+                        }
+
+                        sessionUrl = result.sessionUrl;
+                        const finalStatus = result.result;
+                        
+                        if (finalStatus && finalStatus.structured_output) {
+                            const output = finalStatus.structured_output;
+                            prNumber = output.pr_number || output.prNumber;
+                            prUrl = output.pr_url || output.prUrl || `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`;
+                            branchName = output.branch || `devin/${Date.now()}-${type}-${feature.name.toLowerCase().replace(/\s+/g, '-')}`;
+                        } else {
+                            prNumber = 'pending';
+                            prUrl = sessionUrl;
+                            branchName = `devin/${Date.now()}-${type}-${feature.name.toLowerCase().replace(/\s+/g, '-')}`;
+                        }
+
+                        const progressContent = steps.map(s => `✓ ${s.label}`).join('\n');
+                        updateLastMessage(progressContent, { type: 'progress' });
+
+                    } catch (error) {
+                        console.error('Devin API error:', error);
+                        addMessage('assistant', `**Error:** ${error.message}\n\nFalling back to simulation mode...`, { type: 'error' });
+                        
+                        for (let i = 0; i < steps.length; i++) {
+                            const step = steps[i];
+                            const progressContent = steps.map((s, idx) => {
+                                if (idx < i) return `✓ ${s.label}`;
+                                if (idx === i) return `⏳ ${s.label}...`;
+                                return `○ ${s.label}`;
+                            }).join('\n');
+                            addMessage('assistant', progressContent, { type: 'progress' });
+                            await new Promise(resolve => setTimeout(resolve, step.duration));
+                        }
+                        prNumber = Math.floor(Math.random() * 100) + 10;
+                        prUrl = `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`;
+                        branchName = `devin/${Date.now()}-${type}-${feature.name.toLowerCase().replace(/\s+/g, '-')}`;
+                    }
+                } else {
+                    for (let i = 0; i < steps.length; i++) {
+                        const step = steps[i];
+                        const progressContent = steps.map((s, idx) => {
+                            if (idx < i) return `✓ ${s.label}`;
+                            if (idx === i) return `⏳ ${s.label}...`;
+                            return `○ ${s.label}`;
+                        }).join('\n');
+                        
+                        addMessage('assistant', progressContent, { type: 'progress' });
+                        await new Promise(resolve => setTimeout(resolve, step.duration));
+                    }
+
+                    const progressContent = steps.map(s => `✓ ${s.label}`).join('\n');
+                    updateLastMessage(progressContent, { type: 'progress' });
+
+                    prNumber = Math.floor(Math.random() * 100) + 10;
+                    prUrl = `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`;
+                    branchName = `devin/${Date.now()}-${type}-${feature.name.toLowerCase().replace(/\s+/g, '-')}`;
                 }
-
-                progressContent = steps.map(s => `✓ ${s.label}`).join('\n');
-                updateLastMessage(progressContent, { type: 'progress' });
-
-                const prNumber = Math.floor(Math.random() * 100) + 10;
-                const prUrl = `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`;
-                const branchName = `devin/${Date.now()}-${type}-${feature.name.toLowerCase().replace(/\s+/g, '-')}`;
 
                 await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -1536,6 +1600,7 @@ PR #${prNumber}: ${type === 'remove' ? 'Remove' : type === 'enable' ? 'Enable' :
 • Branch: \`${branchName}\`
 • Files modified: 1
 • Lines ${type === 'remove' ? 'removed' : type === 'enable' ? 'integrated' : 'restored'}: ${feature.lines}
+${sessionUrl ? `\n🤖 **Devin Session:** [View in Devin](${sessionUrl})` : ''}
 
 **Next Steps:**
 1. Click "Open PR in GitHub" below to review
@@ -1549,7 +1614,8 @@ The feature will ${type === 'remove' ? 'be removed from' : type === 'enable' ? '
                     prNumber,
                     prUrl,
                     feature,
-                    operationType: type
+                    operationType: type,
+                    sessionUrl
                 });
 
                 if (type === 'remove' && onRemoveComplete) {
