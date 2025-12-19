@@ -8,7 +8,7 @@ FullScreenMario.FullScreenMario.settings.mods = {
                 "name": "Josh Goldberg",
                 "email": "josh@fullscreenmario.com"
             },
-            "enabled": false,
+            "enabled": true,
             "events": {
                 "onPlayerLanding": function (mod) {
                     var player = this.player;
