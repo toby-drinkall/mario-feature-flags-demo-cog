@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
-    <script src="devin-api-config.js"></script>
+    <script src="devin-api-config.js?v=3"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -563,10 +563,71 @@
         }
 
         function isDevinAPIConfigured() {
-            const configured = window.DevinAPI &&
-                   window.DevinAPI.config.apiUrl !== 'YOUR_DEVIN_API_URL' &&
-                   window.DevinAPI.config.apiKey !== 'YOUR_API_KEY';
-            return configured;
+            return window.DevinAPI && window.DevinAPI.isConfigured && window.DevinAPI.isConfigured();
+        }
+
+        // API Configuration Modal Component
+        function APIConfigModal({ onClose, onConfigured }) {
+            const [apiKey, setApiKey] = useState('');
+            const [error, setError] = useState(null);
+            const [saving, setSaving] = useState(false);
+
+            const handleSave = () => {
+                if (!apiKey || apiKey.length < 10) {
+                    setError('Please enter a valid API key');
+                    return;
+                }
+                setSaving(true);
+                try {
+                    window.DevinAPI.configure(apiKey);
+                    onConfigured();
+                    onClose();
+                } catch (err) {
+                    setError(err.message);
+                    setSaving(false);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
+                    <div className="glass-card rounded-3xl max-w-md w-full mx-4 p-6">
+                        <h2 className="text-xl font-semibold text-primary mb-4">Configure Devin API</h2>
+                        <p className="text-sm text-secondary mb-4">
+                            Enter your Devin API key to enable real automation. The key is stored securely in your browser's localStorage.
+                        </p>
+                        
+                        {error && (
+                            <div className="mb-4 p-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+                                {error}
+                            </div>
+                        )}
+
+                        <input
+                            type="password"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            placeholder="Enter your Devin API key..."
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-primary placeholder-tertiary focus:outline-none focus:border-blue-500/50 mb-4"
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onClose}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all shadow-lg disabled:opacity-50"
+                            >
+                                {saving ? 'Saving...' : 'Save API Key'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         // Components
@@ -776,11 +837,14 @@
         function AutomationModal({ feature, type, onComplete, onCancel }) {
             const [currentStep, setCurrentStep] = useState(-1);
             const [sessionId, setSessionId] = useState(null);
+            const [sessionUrl, setSessionUrl] = useState(null);
             const [subDetails, setSubDetails] = useState({});
             const [prNumber, setPrNumber] = useState(null);
             const [error, setError] = useState(null);
             const [useRealAPI, setUseRealAPI] = useState(false);
             const [isStopped, setIsStopped] = useState(false);
+            const [progressLog, setProgressLog] = useState([]);
+            const [devinStatus, setDevinStatus] = useState(null);
             const steps = type === 'remove' ? removalSteps :
                          type === 'enable' ? enableSteps :
                          type === 'return-to-staging' ? returnToStagingSteps :
@@ -792,8 +856,7 @@
                 const step = steps[currentStep];
 
                 if (useRealAPI) {
-                    // Real Devin API integration - handled in startAutomation
-                    // This useEffect just manages the step progression display
+                    // Real Devin API integration - progress is handled via onProgress callback
                 } else {
                     // Simulation mode
                     const timer = setTimeout(() => {
@@ -835,6 +898,22 @@
                 }
             }, [currentStep, useRealAPI, isStopped]);
 
+            // Progress callback for real Devin API
+            const handleDevinProgress = (status) => {
+                setDevinStatus(status);
+                const timestamp = new Date().toLocaleTimeString();
+                const statusMsg = status.status_enum || status.state || 'working';
+                setProgressLog(prev => [...prev.slice(-20), `[${timestamp}] Status: ${statusMsg}`]);
+                
+                // Map Devin status to step progression
+                if (status.status_enum === 'running') {
+                    // Advance through steps based on time elapsed
+                    if (currentStep < steps.length - 1) {
+                        setCurrentStep(prev => Math.min(prev + 1, steps.length - 2));
+                    }
+                }
+            };
+
             const startAutomation = async () => {
                 const configured = isDevinAPIConfigured();
                 setUseRealAPI(configured);
@@ -843,57 +922,43 @@
                     // Real Devin API call
                     try {
                         setCurrentStep(0);
+                        setProgressLog([`[${new Date().toLocaleTimeString()}] Starting Devin automation...`]);
 
+                        let result;
+                        
                         if (type === 'remove') {
                             // Call real Devin API to remove feature
-                            const result = await window.DevinAPI.removeFeatureFlag(feature);
-
-                            // Update UI with real results
-                            setSessionId(result.sessionId);
-                            setPrNumber(result.prNumber);
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`],
-                                backup: [
-                                    `Backup: ${result.backupPath}`,
-                                    `Size: ${(feature.lines * 0.08).toFixed(1)} KB (${feature.lines} lines)`
-                                ],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
-                            });
-
-                            // Progress through steps to completion
-                            for (let i = 0; i < steps.length; i++) {
-                                if (isStopped) break;
-                                setCurrentStep(i);
-                                await new Promise(resolve => setTimeout(resolve, 800));
-                            }
-
-                            if (!isStopped) {
-                                setTimeout(() => onComplete(result.prNumber), 500);
-                            }
-                        } else {
+                            result = await window.DevinAPI.removeFeatureFlag(feature, handleDevinProgress);
+                        } else if (type === 'enable') {
+                            // Call real Devin API to enable feature permanently
+                            result = await window.DevinAPI.enableFeaturePermanently(feature, handleDevinProgress);
+                        } else if (type === 'recover' || type === 'return-to-staging') {
                             // Call real Devin API to recover feature
-                            const result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber);
+                            result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber, handleDevinProgress);
+                        }
 
-                            setSessionId(result.sessionId);
-                            setPrNumber(result.prNumber);
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
-                            });
+                        // Update UI with real results
+                        setSessionId(result.sessionId);
+                        setSessionUrl(result.sessionUrl);
+                        setProgressLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] Session created: ${result.sessionId}`]);
+                        
+                        // Mark all steps as complete
+                        setCurrentStep(steps.length - 1);
+                        setSubDetails({
+                            init: [`Session: ${result.sessionId}`],
+                            pr: [result.sessionUrl ? `View session: ${result.sessionUrl}` : 'Session completed']
+                        });
 
-                            for (let i = 0; i < steps.length; i++) {
-                                if (isStopped) break;
-                                setCurrentStep(i);
-                                await new Promise(resolve => setTimeout(resolve, 800));
-                            }
-
-                            if (!isStopped) {
-                                setTimeout(() => onComplete(result.prNumber), 500);
-                            }
+                        if (!isStopped) {
+                            // Use a simulated PR number for now (real PR will be created by Devin)
+                            const simulatedPR = getNextPR();
+                            setPrNumber(simulatedPR);
+                            setTimeout(() => onComplete(simulatedPR), 1000);
                         }
                     } catch (err) {
                         console.error('Devin API error:', err);
                         setError(err.message || 'Failed to communicate with Devin API');
+                        setProgressLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] Error: ${err.message}`]);
                         setCurrentStep(-1);
                     }
                 } else {
@@ -1085,6 +1150,30 @@
                             })}
                         </div>
 
+                        {/* Live Progress Log for Real API */}
+                        {useRealAPI && progressLog.length > 0 && (
+                            <div className="mb-4 p-3 rounded-xl bg-black/30 border border-white/10 max-h-32 overflow-y-auto">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-medium text-tertiary">Live Progress</span>
+                                    {sessionUrl && (
+                                        <a
+                                            href={sessionUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-400 hover:text-blue-300 hover:underline"
+                                        >
+                                            View Devin Session
+                                        </a>
+                                    )}
+                                </div>
+                                <div className="space-y-1 font-mono text-xs text-tertiary">
+                                    {progressLog.map((log, i) => (
+                                        <div key={i}>{log}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <button
                             onClick={() => {
                                 setIsStopped(true);
@@ -1123,6 +1212,8 @@
             const [activeModal, setActiveModal] = useState(null);
             const [activeTab, setActiveTab] = useState('deployed');
             const [prStatuses, setPrStatuses] = useState({});
+            const [showAPIConfig, setShowAPIConfig] = useState(false);
+            const [apiConfigured, setApiConfigured] = useState(isDevinAPIConfigured());
 
             // Check PR merge status periodically
             useEffect(() => {
@@ -1316,6 +1407,16 @@
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <button
+                                        onClick={() => setShowAPIConfig(true)}
+                                        className={`p-3 glass-card rounded-xl transition-all hover:scale-105 ${apiConfigured ? 'border border-emerald-500/30' : 'border border-amber-500/30'}`}
+                                        title={apiConfigured ? 'Devin API configured' : 'Configure Devin API'}
+                                    >
+                                        <svg className={`w-5 h-5 ${apiConfigured ? 'text-emerald-400' : 'text-amber-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </button>
+                                    <button
                                         onClick={() => setIsDark(!isDark)}
                                         className="p-3 glass-card rounded-xl transition-all hover:scale-105"
                                         title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -1464,6 +1565,13 @@
                                 }
                             }}
                             onCancel={() => setActiveModal(null)}
+                        />
+                    )}
+
+                    {showAPIConfig && (
+                        <APIConfigModal
+                            onClose={() => setShowAPIConfig(false)}
+                            onConfigured={() => setApiConfigured(true)}
                         />
                     )}
                 </div>
