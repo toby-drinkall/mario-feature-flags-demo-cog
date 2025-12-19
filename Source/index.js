@@ -12,6 +12,9 @@ document.onreadystatechange = function (event) {
 
     console.log("It took " + (Date.now() - time) + " milliseconds to start."), UserWrapper.displayHelpMenu();
 
+    // Mark game as running for dashboard
+    localStorage.setItem('FSM::game::running', 'true');
+
     // Listen for dashboard commands via localStorage
     window.addEventListener('storage', function(e) {
         if (e.key === 'FSM::dashboard::command' && e.newValue) {
@@ -24,10 +27,20 @@ document.onreadystatechange = function (event) {
                     } else {
                         window.FSM.ModAttacher.disableMod(command.modName);
                     }
+                    // Send response back to dashboard
+                    localStorage.setItem('FSM::dashboard::response', JSON.stringify({
+                        success: true,
+                        timestamp: Date.now()
+                    }));
                 }
             } catch (err) {
                 console.error('Error processing dashboard command:', err);
             }
         }
+    });
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+        localStorage.setItem('FSM::game::running', 'false');
     });
 };
