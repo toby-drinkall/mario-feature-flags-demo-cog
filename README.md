@@ -3,6 +3,23 @@
 #### A free HTML5 remake of Nintendo's original Super Mario Bros, expanded for the modern web. It includes the original 32 levels, a random map generator, a level editor, and over a dozen custom mods.
 
 
+## Feature Flag Dashboard Quick Start
+
+1. Run the setup script to configure your Devin API key:
+   ```bash
+   ./setup.sh
+   ```
+
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open the dashboard: http://localhost:8000/cognition-dashboard-premium.html
+
+The dashboard will show "Devin API Ready" when configured correctly. You can then use Enable/Remove buttons to trigger automated feature flag operations.
+
+
 ## How to Play
 
 Although you may no longer play on [fullscreenmario.com](http://www.fullscreenmario.com), it is easy to play your own copy.
