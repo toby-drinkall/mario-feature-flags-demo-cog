@@ -4,8 +4,9 @@
 
 const DevinAPI = {
     // API Configuration - key loaded from localStorage
+    // Uses local proxy at /api/devin/ to avoid CORS issues
     config: {
-        apiUrl: 'https://api.devin.ai/v1',
+        apiUrl: '/api/devin',  // Local proxy endpoint
         get apiKey() {
             return localStorage.getItem('devin_api_key') || 'YOUR_API_KEY';
         },
@@ -42,7 +43,7 @@ const DevinAPI = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.config.apiKey}`,
+                    'X-Devin-Api-Key': this.config.apiKey,
                 },
                 body: JSON.stringify({
                     ...sessionConfig,
@@ -75,7 +76,7 @@ const DevinAPI = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.config.apiKey}`,
+                    'X-Devin-Api-Key': this.config.apiKey,
                 },
                 body: JSON.stringify({ message })
             });
@@ -103,7 +104,7 @@ const DevinAPI = {
         try {
             const response = await fetch(`${this.config.apiUrl}/session/${sessionId}`, {
                 headers: {
-                    'Authorization': `Bearer ${this.config.apiKey}`,
+                    'X-Devin-Api-Key': this.config.apiKey,
                 }
             });
 
@@ -153,13 +154,11 @@ const DevinAPI = {
     async removeFeatureFlag(feature, onProgress) {
         console.log(`Devin: Starting removal of "${feature.name}"`);
 
-        // Create session with the task
+        // Create session with the prompt - no need to send a separate message
+        // The prompt is sent as the initial instruction when creating the session
         const session = await this.createSession({
             prompt: this.buildRemovalPrompt(feature),
         });
-
-        // Send the detailed instruction
-        await this.sendMessage(session.sessionId, this.buildRemovalPrompt(feature));
 
         // Wait for completion with progress updates
         const result = await this.waitForCompletion(
@@ -231,13 +230,11 @@ Please proceed with these steps and report your progress.
     async recoverFeatureFlag(feature, removalPR, onProgress) {
         console.log(`Devin: Starting recovery of "${feature.name}"`);
 
-        // Create session
+        // Create session with the prompt - no need to send a separate message
+        // The prompt is sent as the initial instruction when creating the session
         const session = await this.createSession({
             prompt: this.buildRecoveryPrompt(feature, removalPR),
         });
-
-        // Send the detailed instruction
-        await this.sendMessage(session.sessionId, this.buildRecoveryPrompt(feature, removalPR));
 
         // Wait for completion with progress updates
         const result = await this.waitForCompletion(
@@ -303,13 +300,11 @@ Please proceed with these steps and report your progress.
     async enableFeaturePermanently(feature, onProgress) {
         console.log(`Devin: Permanently enabling "${feature.name}"`);
 
-        // Create session
+        // Create session with the prompt - no need to send a separate message
+        // The prompt is sent as the initial instruction when creating the session
         const session = await this.createSession({
             prompt: this.buildEnablePrompt(feature),
         });
-
-        // Send the detailed instruction
-        await this.sendMessage(session.sessionId, this.buildEnablePrompt(feature));
 
         // Wait for completion with progress updates
         const result = await this.waitForCompletion(
