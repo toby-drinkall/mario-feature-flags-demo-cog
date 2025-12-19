@@ -8,6 +8,84 @@ const DevinAPI = {
         apiUrl: 'YOUR_DEVIN_API_URL', // e.g., 'https://api.devin.ai/v1'
         apiKey: 'YOUR_API_KEY',       // Your Devin API key
         timeout: 300000, // 5 minutes max per operation
+        
+        // GitHub Configuration (optional - enables merge from dashboard)
+        // Create a fine-grained PAT with 'Contents: Read and write' permission
+        // for the mario-feature-flags-demo-cog repository
+        githubToken: '', // Your GitHub Personal Access Token (leave empty to disable merge button)
+        githubRepo: 'toby-drinkall/mario-feature-flags-demo-cog',
+    },
+
+    // Check if GitHub token is configured
+    isGitHubConfigured() {
+        return this.config.githubToken && this.config.githubToken.length > 0;
+    },
+
+    // Merge a PR via GitHub API
+    async mergePR(prNumber) {
+        if (!this.isGitHubConfigured()) {
+            throw new Error('GitHub token not configured');
+        }
+
+        // Safety check: only allow on localhost or file: protocol
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.protocol === 'file:';
+        if (!isLocalhost) {
+            throw new Error('Merge from dashboard is only allowed on localhost for security');
+        }
+
+        const response = await fetch(
+            `https://api.github.com/repos/${this.config.githubRepo}/pulls/${prNumber}/merge`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${this.config.githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    merge_method: 'merge', // or 'squash' or 'rebase'
+                    commit_title: `Merge PR #${prNumber}`,
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Failed to merge PR: ${response.status}`);
+        }
+
+        return await response.json();
+    },
+
+    // Check PR status with authentication (higher rate limit)
+    async checkPRStatus(prNumber) {
+        const headers = {
+            'Accept': 'application/vnd.github.v3+json',
+        };
+        
+        if (this.isGitHubConfigured()) {
+            headers['Authorization'] = `Bearer ${this.config.githubToken}`;
+        }
+
+        const response = await fetch(
+            `https://api.github.com/repos/${this.config.githubRepo}/pulls/${prNumber}`,
+            { headers }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to check PR status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return {
+            merged: data.merged_at !== null,
+            state: data.state,
+            merged_at: data.merged_at,
+            mergeable: data.mergeable,
+            mergeable_state: data.mergeable_state,
+        };
     },
 
     // Create a new Devin session
