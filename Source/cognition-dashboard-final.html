@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognition Demo Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Mod definitions with actual code info
+        const modsData = [
+            { name: "Bouncy Bounce", description: "Mario landing causes him to jump.", file: "Source/settings/mods.js", lineStart: 5, lineEnd: 35, lines: 31 },
+            { name: "Dark is the Night", description: "Dark theme visual.", file: "Source/settings/mods.js", lineStart: 37, lineEnd: 82, lines: 46 },
+            { name: "Earthquake!", description: "Mario landing causes everything to jump.", file: "Source/settings/mods.js", lineStart: 84, lineEnd: 158, lines: 75 },
+            { name: "Gradient Skies", description: "Smooth gradient backgrounds.", file: "Source/settings/mods.js", lineStart: 160, lineEnd: 245, lines: 86 },
+            { name: "Hard Mode", description: "Harder enemies and faster gameplay.", file: "Source/settings/mods.js", lineStart: 247, lineEnd: 338, lines: 92 },
+            { name: "High Speed", description: "Mario runs 14x faster.", file: "Source/settings/mods.js", lineStart: 340, lineEnd: 372, lines: 33 },
+            { name: "Infinite Lives", description: "Lives never decrease.", file: "Source/settings/mods.js", lineStart: 374, lineEnd: 410, lines: 37 },
+            { name: "Invincibility", description: "Permanent star power.", file: "Source/settings/mods.js", lineStart: 412, lineEnd: 440, lines: 29 },
+            { name: "Parallax Clouds", description: "Clouds scroll at 70% speed.", file: "Source/settings/mods.js", lineStart: 442, lineEnd: 456, lines: 15 },
+            { name: "Low Gravity", description: "Reduced gravity.", file: "Source/settings/mods.js", lineStart: 458, lineEnd: 474, lines: 17 },
+            { name: "Luigi", description: "Play as Luigi.", file: "Source/settings/mods.js", lineStart: 476, lineEnd: 507, lines: 32 },
+            { name: "Tilt Gravity", description: "Device motion controls gravity.", file: "Source/settings/mods.js", lineStart: 509, lineEnd: 550, lines: 42 },
+            { name: "Palette Swap", description: "Random color palettes.", file: "Source/settings/mods.js", lineStart: 552, lineEnd: 616, lines: 65 },
+            { name: "QCount", description: "Press Q to spawn enemies.", file: "Source/settings/mods.js", lineStart: 618, lineEnd: 689, lines: 72 },
+            { name: "Super Fireballs", description: "Fireballs destroy blocks.", file: "Source/settings/mods.js", lineStart: 691, lineEnd: 707, lines: 17 },
+            { name: "Trip of Acid", description: "Screen trails effect.", file: "Source/settings/mods.js", lineStart: 709, lineEnd: 733, lines: 25 }
+        ];
+
+        // Devin automation steps
+        const removalSteps = [
+            { id: 'init', label: 'Initializing Devin session', duration: 800 },
+            { id: 'analyze', label: 'Analyzing codebase structure', duration: 1500 },
+            { id: 'backup', label: 'Creating feature backup', duration: 600 },
+            { id: 'remove', label: 'Removing feature flag code', duration: 2000 },
+            { id: 'test', label: 'Running test suite', duration: 3500 },
+            { id: 'branch', label: 'Creating git branch', duration: 800 },
+            { id: 'commit', label: 'Committing changes', duration: 1000 },
+            { id: 'pr', label: 'Creating Pull Request', duration: 1500 },
+            { id: 'docs', label: 'Updating documentation', duration: 800 }
+        ];
+
+        const recoverySteps = [
+            { id: 'init', label: 'Initializing Devin session', duration: 800 },
+            { id: 'load', label: 'Loading feature backup', duration: 1000 },
+            { id: 'analyze_pr', label: 'Analyzing removal PR', duration: 1200 },
+            { id: 'restore', label: 'Restoring feature code', duration: 2000 },
+            { id: 'test', label: 'Running test suite', duration: 3000 },
+            { id: 'branch', label: 'Creating recovery branch', duration: 800 },
+            { id: 'pr', label: 'Creating Pull Request', duration: 1500 }
+        ];
+
+        // Generate PR number
+        let prCounter = parseInt(localStorage.getItem('pr_counter') || '122');
+        function getNextPR() {
+            prCounter++;
+            localStorage.setItem('pr_counter', prCounter.toString());
+            return prCounter;
+        }
+
+        // Toggle Component
+        function Toggle({ enabled, onChange }) {
+            return (
+                <button
+                    onClick={onChange}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${enabled ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${enabled ? 'translate-x-5' : ''}`} />
+                </button>
+            );
+        }
+
+        // Automation Modal
+        function AutomationModal({ feature, type, onComplete, onCancel }) {
+            const [currentStep, setCurrentStep] = useState(-1);
+            const [sessionId] = useState(() => `dvn_${Date.now()}`);
+            const [subDetails, setSubDetails] = useState({});
+            const [prNumber] = useState(getNextPR());
+            const steps = type === 'remove' ? removalSteps : recoverySteps;
+
+            useEffect(() => {
+                if (currentStep === -1) return;
+
+                const step = steps[currentStep];
+                const timer = setTimeout(() => {
+                    if (currentStep < steps.length - 1) {
+                        setCurrentStep(currentStep + 1);
+                    } else {
+                        // Complete
+                        setTimeout(() => onComplete(prNumber), 500);
+                    }
+                }, step.duration);
+
+                // Add sub-details as step progresses
+                setTimeout(() => {
+                    if (step.id === 'init') {
+                        setSubDetails(prev => ({ ...prev, [step.id]: [`Session ID: ${sessionId}`] }));
+                    } else if (step.id === 'analyze') {
+                        setSubDetails(prev => ({ ...prev, [step.id]: [
+                            'Found 1 feature flag definition',
+                            `Located in: ${feature.file}:${feature.lineStart}-${feature.lineEnd}`
+                        ]}));
+                    } else if (step.id === 'backup') {
+                        const backupId = `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}`;
+                        setSubDetails(prev => ({ ...prev, [step.id]: [
+                            `Backup: ${backupId}.json`,
+                            `Size: ${(feature.lines * 0.08).toFixed(1)} KB (${feature.lines} lines)`
+                        ]}));
+                    } else if (step.id === 'remove') {
+                        setSubDetails(prev => ({ ...prev, [step.id]: [
+                            `Editing ${feature.file}`,
+                            `Deleting lines ${feature.lineStart}-${feature.lineEnd}`
+                        ]}));
+                    } else if (step.id === 'test') {
+                        setTimeout(() => {
+                            setSubDetails(prev => ({ ...prev, [step.id]: ['All 47 tests passing'] }));
+                        }, 2500);
+                    } else if (step.id === 'branch') {
+                        const branchName = `${type}-${feature.name.toLowerCase().replace(/\s/g, '-')}-${new Date().toISOString().slice(0,10).replace(/-/g,'')}`;
+                        setSubDetails(prev => ({ ...prev, [step.id]: [`Branch: ${branchName}`] }));
+                    } else if (step.id === 'pr') {
+                        setSubDetails(prev => ({ ...prev, [step.id]: [`PR #${prNumber}`] }));
+                    } else if (step.id === 'load') {
+                        setSubDetails(prev => ({ ...prev, [step.id]: [
+                            'Source: ' + localStorage.getItem(`backup_${feature.name}`),
+                            `Validated: ${feature.lines} lines ready to restore`
+                        ]}));
+                    } else if (step.id === 'analyze_pr') {
+                        const originalPR = localStorage.getItem(`removed_${feature.name}_pr`);
+                        setSubDetails(prev => ({ ...prev, [step.id]: [
+                            `Found changes from PR #${originalPR}`,
+                            `Target file: ${feature.file}`
+                        ]}));
+                    } else if (step.id === 'restore') {
+                        setSubDetails(prev => ({ ...prev, [step.id]: [
+                            `Inserting ${feature.lines} lines at position ${feature.lineStart}`,
+                            'Formatting and validating syntax'
+                        ]}));
+                    }
+                }, step.duration / 3);
+
+                return () => clearTimeout(timer);
+            }, [currentStep]);
+
+            const startAutomation = () => setCurrentStep(0);
+            const isComplete = currentStep === steps.length - 1;
+
+            if (currentStep === -1) {
+                // Confirmation screen
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 fade-in">
+                        <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-6">
+                            <h2 className="text-xl font-bold mb-4">
+                                {type === 'remove' ? 'Remove' : 'Recover'} "{feature.name}"?
+                            </h2>
+                            <div className="space-y-3 mb-6">
+                                <p className="text-sm text-gray-600">This will trigger Devin to:</p>
+                                {steps.slice(0, 6).map(step => (
+                                    <div key={step.id} className="flex items-start text-sm">
+                                        <span className="text-green-600 mr-2">✓</span>
+                                        <span className="text-gray-700">{step.label}</span>
+                                    </div>
+                                ))}
+                                {type === 'remove' && (
+                                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                                        <p className="text-sm text-yellow-800">⚠️ This will modify actual code files</p>
+                                    </div>
+                                )}
+                                {type === 'recover' && (
+                                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                                        <p className="text-sm text-blue-800">This will restore code from backup</p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                <button onClick={onCancel} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                    Cancel
+                                </button>
+                                <button onClick={startAutomation} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    Start Devin Automation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (isComplete) {
+                // Success screen
+                return (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 fade-in">
+                        <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 p-6">
+                            <div className="text-center mb-4">
+                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    {type === 'remove' ? 'Feature Flag Removed!' : 'Feature Flag Recovered!'}
+                                </h2>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Completed in {steps.reduce((sum, s) => sum + s.duration, 0) / 1000}s
+                                </p>
+                            </div>
+
+                            <div className="space-y-3 mb-6">
+                                <div className="p-4 bg-gray-50 rounded-lg">
+                                    <h3 className="font-semibold text-sm mb-2">Pull Request Created</h3>
+                                    <p className="text-sm text-gray-700">#{prNumber} "{type === 'remove' ? 'Remove' : 'Recover'} {feature.name} feature flag"</p>
+                                    <p className="text-xs text-gray-500 mt-1">Branch: {type}-{feature.name.toLowerCase().replace(/\s/g, '-')}-{new Date().toISOString().slice(0,10).replace(/-/g,'')}</p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div className="p-2 bg-gray-50 rounded">
+                                        <div className="text-lg font-bold text-gray-900">1</div>
+                                        <div className="text-xs text-gray-600">Files</div>
+                                    </div>
+                                    <div className="p-2 bg-red-50 rounded">
+                                        <div className="text-lg font-bold text-red-600">{type === 'remove' ? feature.lines : 0}</div>
+                                        <div className="text-xs text-gray-600">Removed</div>
+                                    </div>
+                                    <div className="p-2 bg-green-50 rounded">
+                                        <div className="text-lg font-bold text-green-600">{type === 'recover' ? feature.lines : 0}</div>
+                                        <div className="text-xs text-gray-600">Added</div>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                    <span className="text-green-600">✓</span> All 47 tests passing
+                                </div>
+                            </div>
+
+                            <button onClick={() => onComplete(prNumber)} className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Progress screen
+            return (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto">
+                        <h2 className="text-xl font-bold mb-2">
+                            Devin is {type === 'remove' ? 'removing' : 'recovering'} "{feature.name}"
+                        </h2>
+                        <p className="text-sm text-gray-600 mb-6">
+                            Started {Math.floor((currentStep + 1) * 1000 / 1000)} seconds ago
+                        </p>
+
+                        <div className="space-y-4">
+                            {steps.map((step, idx) => {
+                                const status = idx < currentStep ? 'complete' : idx === currentStep ? 'active' : 'waiting';
+                                return (
+                                    <div key={step.id} className="fade-in">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                {status === 'complete' && (
+                                                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                {status === 'active' && (
+                                                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full spinner" />
+                                                )}
+                                                {status === 'waiting' && (
+                                                    <div className="w-5 h-5 bg-gray-300 rounded-full" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className={`font-medium ${status === 'active' ? 'text-blue-600' : status === 'complete' ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                    {step.label}
+                                                </p>
+                                                {subDetails[step.id] && (
+                                                    <div className="mt-1 ml-3 space-y-0.5">
+                                                        {subDetails[step.id].map((detail, i) => (
+                                                            <p key={i} className="text-sm text-gray-600">└─ {detail}</p>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Main Dashboard
+        function Dashboard() {
+            const [gameWindow, setGameWindow] = useState(null);
+            const [connected, setConnected] = useState(false);
+            const [modStates, setModStates] = useState({});
+            const [removedFeatures, setRemovedFeatures] = useState(() => {
+                const stored = localStorage.getItem('removed_features');
+                return stored ? JSON.parse(stored) : [];
+            });
+            const [activeModal, setActiveModal] = useState(null);
+
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    try {
+                        const isConnected = gameWindow && !gameWindow.closed && gameWindow.FSM && gameWindow.FSM.ModAttacher;
+                        setConnected(isConnected);
+                        if (isConnected) updateModStates(gameWindow);
+                    } catch (e) {
+                        setConnected(false);
+                    }
+                }, 1000);
+                return () => clearInterval(interval);
+            }, [gameWindow]);
+
+            const openGame = () => {
+                const win = window.open('index.html', 'FullScreenMario', 'width=1200,height=800');
+                setGameWindow(win);
+                const checkLoaded = setInterval(() => {
+                    try {
+                        if (win.FSM && win.FSM.ModAttacher) {
+                            clearInterval(checkLoaded);
+                            updateModStates(win);
+                        }
+                    } catch (e) {}
+                }, 100);
+            };
+
+            const updateModStates = (win) => {
+                if (!win || !win.FSM) return;
+                const states = {};
+                modsData.filter(m => !removedFeatures.find(r => r.name === m.name)).forEach(mod => {
+                    try {
+                        const modData = win.FSM.ModAttacher.getMod(mod.name);
+                        states[mod.name] = modData ? modData.enabled : false;
+                    } catch (e) {
+                        states[mod.name] = false;
+                    }
+                });
+                setModStates(states);
+            };
+
+            const toggleMod = (modName) => {
+                if (!connected) {
+                    alert('Game not connected!');
+                    return;
+                }
+                try {
+                    gameWindow.FSM.ModAttacher.toggleMod(modName);
+                    const newState = gameWindow.FSM.ModAttacher.getMod(modName).enabled;
+                    setModStates(prev => ({ ...prev, [modName]: newState }));
+                } catch (err) {
+                    console.error('Error toggling mod:', err);
+                }
+            };
+
+            const handleRemoveComplete = (feature, prNumber) => {
+                const removed = {
+                    ...feature,
+                    removedAt: Date.now(),
+                    prNumber,
+                    backupId: `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}.json`
+                };
+                const newRemoved = [...removedFeatures, removed];
+                setRemovedFeatures(newRemoved);
+                localStorage.setItem('removed_features', JSON.stringify(newRemoved));
+                localStorage.setItem(`backup_${feature.name}`, removed.backupId);
+                localStorage.setItem(`removed_${feature.name}_pr`, prNumber);
+                setActiveModal(null);
+            };
+
+            const handleRecoverComplete = (feature, prNumber) => {
+                const newRemoved = removedFeatures.filter(r => r.name !== feature.name);
+                setRemovedFeatures(newRemoved);
+                localStorage.setItem('removed_features', JSON.stringify(newRemoved));
+                setActiveModal(null);
+            };
+
+            const activeFeatures = modsData.filter(m => !removedFeatures.find(r => r.name === m.name));
+            const enabledCount = Object.values(modStates).filter(Boolean).length;
+
+            return (
+                <div className="min-h-screen bg-gray-50">
+                    <header className="bg-white border-b">
+                        <div className="max-w-7xl mx-auto px-6 py-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-2xl font-bold">Cognition Demo Dashboard</h1>
+                                    <p className="text-sm text-gray-600 mt-1">Real-time feature management and automated code removal</p>
+                                </div>
+                                <button onClick={openGame} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    Launch Game
+                                </button>
+                            </div>
+                            <div className="mt-4">
+                                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${connected ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                    <span className={connected ? '' : 'animate-pulse'}>●</span>
+                                    {connected ? 'Connected to Game' : 'Waiting for Connection'}
+                                </span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-6 py-8">
+                        <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div className="bg-white rounded-lg border p-6">
+                                <div className="text-3xl font-bold text-gray-900">{activeFeatures.length}</div>
+                                <div className="text-sm text-gray-600 mt-1">Active Features</div>
+                            </div>
+                            <div className="bg-white rounded-lg border p-6">
+                                <div className="text-3xl font-bold text-blue-600">{enabledCount}</div>
+                                <div className="text-sm text-gray-600 mt-1">Currently Enabled</div>
+                            </div>
+                            <div className="bg-white rounded-lg border p-6">
+                                <div className="text-3xl font-bold text-red-600">{removedFeatures.length}</div>
+                                <div className="text-sm text-gray-600 mt-1">Removed (Recoverable)</div>
+                            </div>
+                        </div>
+
+                        <section className="mb-12">
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h2 className="text-lg font-semibold">Feature Flags in Codebase</h2>
+                                    <p className="text-sm text-gray-600">Toggle ON/OFF for live testing • Remove to delete code</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                                {activeFeatures.map(feature => (
+                                    <div key={feature.name} className="bg-white rounded-lg border p-4 flex items-center justify-between hover:border-gray-300 transition">
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold text-gray-900">{feature.name}</h3>
+                                            <p className="text-sm text-gray-600">{feature.description}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Toggle enabled={modStates[feature.name] || false} onChange={() => connected && toggleMod(feature.name)} />
+                                            <button
+                                                onClick={() => setActiveModal({ type: 'remove', feature })}
+                                                className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        <section>
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h2 className="text-lg font-semibold">Removed Features (Recoverable)</h2>
+                                    <p className="text-sm text-gray-600">Features removed by Devin automation</p>
+                                </div>
+                            </div>
+                            {removedFeatures.length === 0 ? (
+                                <div className="bg-white rounded-lg border p-8 text-center">
+                                    <p className="text-gray-500">No features have been removed yet</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {removedFeatures.map(feature => (
+                                        <div key={feature.name} className="bg-white rounded-lg border p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <h3 className="font-semibold text-gray-900">{feature.name}</h3>
+                                                    <p className="text-sm text-gray-600 mt-1">
+                                                        Removed {Math.floor((Date.now() - feature.removedAt) / 60000)} minutes ago via Devin
+                                                    </p>
+                                                    <div className="flex gap-4 mt-2 text-sm text-gray-600">
+                                                        <span>PR #{feature.prNumber}</span>
+                                                        <span>•</span>
+                                                        <span>{feature.lines} lines deleted</span>
+                                                        <span>•</span>
+                                                        <span>Tests passing</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 mt-1">Backup: {feature.backupId}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setActiveModal({ type: 'recover', feature })}
+                                                    className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                >
+                                                    ↩️ Recover
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </main>
+
+                    {activeModal && (
+                        <AutomationModal
+                            feature={activeModal.feature}
+                            type={activeModal.type}
+                            onComplete={(prNumber) => {
+                                if (activeModal.type === 'remove') {
+                                    handleRemoveComplete(activeModal.feature, prNumber);
+                                } else {
+                                    handleRecoverComplete(activeModal.feature, prNumber);
+                                }
+                            }}
+                            onCancel={() => setActiveModal(null)}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Dashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
