@@ -10,8 +10,8 @@ Your dashboard is **already configured** with:
 
 ## Repository Information
 
-**Primary Repo**: `https://github.com/umaim/Mario.git`  
-**Personal Fork**: `https://github.com/toby-drinkall/mario-feature-flags-demo.git`
+**Primary Repo**: `https://github.com/umaim/Mario.git`
+**Personal Fork**: `https://github.com/toby-drinkall/mario-feature-flags-demo-cog.git`
 
 ## Setup Steps
 
@@ -24,15 +24,15 @@ This gives you full control and keeps changes isolated.
 
 1. **Update the config** to use your personal fork:
    ```javascript
-   // In Source/devin-api-config.js, update line 121:
-   repository: 'https://github.com/toby-drinkall/mario-feature-flags-demo.git'
+   // In Source/devin-api-config.js, update lines 121 and 176:
+   repository: 'https://github.com/toby-drinkall/mario-feature-flags-demo-cog.git'
    ```
 
 2. **Grant Devin access** to your GitHub:
    - Go to Devin dashboard
    - Navigate to Settings → Integrations → GitHub
    - Authorize Devin to access your repositories
-   - Select `toby-drinkall/mario-feature-flags-demo`
+   - Select `toby-drinkall/mario-feature-flags-demo-cog`
 
 #### Option B: Use Original Repo (Requires Permissions)
 Only if you have write access to `umaim/Mario`.
@@ -77,7 +77,7 @@ Update `Source/devin-api-config.js` line 121 with your actual repo:
 repository: window.location.origin
 
 // Change to (your actual GitHub repo):
-repository: 'https://github.com/toby-drinkall/mario-feature-flags-demo.git'
+repository: 'https://github.com/toby-drinkall/mario-feature-flags-demo-cog.git'
 ```
 
 ## How the Automation Works
