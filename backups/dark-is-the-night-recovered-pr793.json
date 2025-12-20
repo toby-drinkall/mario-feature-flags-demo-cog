@@ -1,0 +1,16 @@
+{
+  "featureName": "Dark is the Night",
+  "recoveredAt": "2025-12-20T19:52:00.000Z",
+  "recoveredBy": "dashboard-automation",
+  "originalRemovalPR": 793,
+  "file": "Source/settings/mods.js",
+  "lineStart": 37,
+  "lineEnd": 82,
+  "code": "        {\n            \"name\": \"Dark is the Night\",\n            \"description\": \"The night is darkest before the dawn, but I promise you: the dawn is coming.\",\n            \"author\": {\n                \"name\": \"Josh Goldberg\",\n                \"email\": \"josh@fullscreenmario.com\"\n            },\n            \"enabled\": false,\n            \"events\": {\n                \"onModEnable\": function (mod) {\n                    var area = this.MapsHandler.getArea();\n                    \n                    if (!area) {\n                        return;\n                    }\n                    \n                    mod.events.onPreSetLocation.call(this, mod);\n                },\n                \"onPreSetLocation\": function (mod) {\n                    var area = this.MapsHandler.getArea();\n                    \n                    area.setting += \" Castle Alt2\";\n                    area.setBackground(area);\n                    \n                    this.PixelDrawer.setBackground(area.background);\n                    this.GroupHolder.callOnAll(this, this.PixelDrawer.setThingSprite.bind(this.PixelDrawer));\n                    \n                    this.ModAttacher.fireEvent(\n                        \"onSetLocation\",\n                        this.MapsHandler.getLocation()\n                    );\n                },\n                \"onModDisable\": function (mod) {\n                    var area = this.MapsHandler.getArea();\n                    \n                    area.setting = area.setting.replace(\" Castle Alt2\", \"\");\n                    area.setBackground(area);\n                    \n                    this.PixelDrawer.setBackground(area.background);\n                    this.GroupHolder.callOnAll(this, this.PixelDrawer.setThingSprite.bind(this.PixelDrawer));\n                    \n                    this.ModAttacher.fireEvent(\n                        \"onSetLocation\",\n                        this.MapsHandler.getLocation()\n                    );\n                }\n            }\n        },",
+  "reason": "Recovery of feature flag removed in PR #793",
+  "metadata": {
+    "category": "visual",
+    "description": "The night is darkest before the dawn, but I promise you: the dawn is coming.",
+    "linesRestored": 46
+  }
+}
