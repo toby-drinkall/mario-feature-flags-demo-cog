@@ -616,6 +616,20 @@ var FullScreenMario;
             }
             return false;
         };
+        // FEATURE FLAG: PERFORMANCE_HUD - Start
+        /**
+         * Updates the Performance HUD with current game stats.
+         * Called during the game loop to keep stats current.
+         *
+         * @param {FullScreenMario} FSM
+         */
+        FullScreenMario.prototype.maintainPerformanceHUD = function (FSM) {
+            if (typeof window.PerformanceHUD !== 'undefined' && window.PerformanceHUD.hudElement) {
+                // HUD updates are handled by the setInterval in ui.js
+                // This function is a placeholder for future frame-accurate updates
+            }
+        };
+        // FEATURE FLAG: PERFORMANCE_HUD - End
         /**
          * Regular maintenance Function called on the Scenery group every 350
          * upkeeps (slightly over 5 seconds). Things are checked for being alive
