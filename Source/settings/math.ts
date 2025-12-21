@@ -9,20 +9,8 @@ FullScreenMario.FullScreenMario.settings.math = {
             constants: FullScreenMario.IMapScreenr,
             equations: MathDecidr.IEquationContainer,
             player: FullScreenMario.IPlayer): void {
-
-            // FEATURE FLAG: useEnhancedJumpPhysics
-            var jumpmod: number;
-            if (player.FSM.settings.features && player.FSM.settings.features.useEnhancedJumpPhysics) {
-                // NEW: Enhanced physics with momentum-based calculations
-                jumpmod = player.FSM.MapScreener.jumpmod * 1.2;
-                var momentum: number = player.xvel * 0.0018;
-                jumpmod = jumpmod - momentum;
-            } else {
-                // OLD: Original simple physics (will be removed when flag is deleted)
-                jumpmod = player.FSM.MapScreener.jumpmod - player.xvel * .0014;
-            }
-
-            var power: number = Math.pow(player.keys.jumplev, jumpmod),
+            var jumpmod_v2: number = player.FSM.MapScreener.jumpmod_v2 - player.xvel * .0014,
+                power: number = Math.pow(player.keys.jumplev, jumpmod_v2),
                 dy: number = player.FSM.unitsize / power;
 
             player.yvel = Math.max(player.yvel - dy, constants.maxyvelinv);

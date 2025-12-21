@@ -324,3 +324,59 @@ section.section-text {
         padding: 14px 7px;
     }
 }
+
+
+/* FEATURE FLAG: PERFORMANCE_HUD - Start */
+/* Performance HUD overlay showing FPS and game stats */
+#performance-hud {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid #00ff00;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-family: 'Press Start', monospace;
+    font-size: 10px;
+    color: #00ff00;
+    z-index: 9999;
+    min-width: 180px;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+#performance-hud h3 {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    color: #ffff00;
+    text-align: center;
+    border-bottom: 1px solid #00ff00;
+    padding-bottom: 5px;
+}
+
+#performance-hud .hud-stat {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+#performance-hud .hud-label {
+    color: #00cc00;
+}
+
+#performance-hud .hud-value {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+#performance-hud .hud-fps-high {
+    color: #00ff00;
+}
+
+#performance-hud .hud-fps-medium {
+    color: #ffff00;
+}
+
+#performance-hud .hud-fps-low {
+    color: #ff0000;
+}
+/* FEATURE FLAG: PERFORMANCE_HUD - End */

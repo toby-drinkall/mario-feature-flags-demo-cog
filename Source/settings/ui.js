@@ -411,3 +411,99 @@ FullScreenMario.FullScreenMario.settings.ui = {
         }
     ]
 };
+
+// FEATURE FLAG: PERFORMANCE_HUD - Start
+// Performance HUD - visible overlay showing FPS and game stats
+window.PerformanceHUD = {
+    hudElement: null,
+    lastFrameTime: Date.now(),
+    frameCount: 0,
+    fps: 0,
+    updateInterval: null,
+
+    initialize: function() {
+        // Create HUD DOM element
+        this.hudElement = document.createElement('div');
+        this.hudElement.id = 'performance-hud';
+        this.hudElement.innerHTML = `
+            <h3>PERFORMANCE HUD</h3>
+            <div class="hud-stat">
+                <span class="hud-label">FPS:</span>
+                <span class="hud-value" id="hud-fps">--</span>
+            </div>
+            <div class="hud-stat">
+                <span class="hud-label">Frame Time:</span>
+                <span class="hud-value" id="hud-frametime">--ms</span>
+            </div>
+            <div class="hud-stat">
+                <span class="hud-label">Uptime:</span>
+                <span class="hud-value" id="hud-uptime">--s</span>
+            </div>
+            <div class="hud-stat">
+                <span class="hud-label">Objects:</span>
+                <span class="hud-value" id="hud-objects">--</span>
+            </div>
+        `;
+        document.body.appendChild(this.hudElement);
+        console.log('✓ Performance HUD DOM created');
+    },
+
+    startUpdates: function() {
+        var self = this;
+        var startTime = Date.now();
+
+        // Update HUD every 250ms
+        this.updateInterval = setInterval(function() {
+            self.update(startTime);
+        }, 250);
+    },
+
+    update: function(startTime) {
+        var currentTime = Date.now();
+        var deltaTime = currentTime - this.lastFrameTime;
+
+        // Calculate FPS (approximate)
+        this.fps = Math.round(1000 / deltaTime);
+        this.lastFrameTime = currentTime;
+
+        // Update FPS display with color coding
+        var fpsElement = document.getElementById('hud-fps');
+        if (fpsElement) {
+            fpsElement.textContent = this.fps;
+            fpsElement.className = 'hud-value ' +
+                (this.fps >= 50 ? 'hud-fps-high' :
+                 this.fps >= 30 ? 'hud-fps-medium' : 'hud-fps-low');
+        }
+
+        // Update frame time
+        var frameTimeElement = document.getElementById('hud-frametime');
+        if (frameTimeElement) {
+            frameTimeElement.textContent = Math.round(deltaTime) + 'ms';
+        }
+
+        // Update uptime
+        var uptimeElement = document.getElementById('hud-uptime');
+        if (uptimeElement) {
+            var uptime = Math.round((currentTime - startTime) / 1000);
+            uptimeElement.textContent = uptime + 's';
+        }
+
+        // Update object count (from FSM if available)
+        var objectsElement = document.getElementById('hud-objects');
+        if (objectsElement && window.FSM && window.FSM.GroupHolder) {
+            try {
+                var thingCount = 0;
+                var groups = window.FSM.GroupHolder.getGroups();
+                for (var groupName in groups) {
+                    if (groups.hasOwnProperty(groupName)) {
+                        thingCount += groups[groupName].length;
+                    }
+                }
+                objectsElement.textContent = thingCount;
+            } catch (e) {
+                objectsElement.textContent = 'N/A';
+            }
+        }
+    }
+};
+// FEATURE FLAG: PERFORMANCE_HUD - End
