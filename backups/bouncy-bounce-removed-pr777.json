@@ -12,5 +12,12 @@
     "category": "movement",
     "description": "Mario landing causes him to jump.",
     "linesRemoved": 31
+  },
+  "recovery": {
+    "recoveredAt": "2025-12-21T16:32:00.000Z",
+    "recoveredBy": "devin-automation",
+    "status": "recovered",
+    "restoredToFile": "Source/settings/mods.js",
+    "restoredAtLine": 5
   }
 }
