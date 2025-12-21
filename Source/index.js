@@ -26,6 +26,11 @@ document.onreadystatechange = function (event) {
             localStorage.setItem('FSM::game::running', 'true');
             console.log('✓ Game marked as running. FSM.ModAttacher available.');
 
+            // DEBUG: Verify jump physics constant loaded correctly
+            if (window.FSM.MapScreener) {
+                console.log('🎮 MapScreener.jumpmod_v2 =', window.FSM.MapScreener.jumpmod_v2, '(should be 2.112)');
+            }
+
             // FEATURE FLAG: PERFORMANCE_HUD - Start
             // Start HUD updates when game is ready
             if (typeof window.PerformanceHUD !== 'undefined') {
