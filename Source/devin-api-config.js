@@ -6,7 +6,7 @@ const DevinAPI = {
     // API Configuration
     config: {
         // Use proxy server to avoid CORS issues (proxy forwards to api.devin.ai)
-        apiUrl: 'http://localhost:3000/api/devin',
+        apiUrl: 'http://localhost:8000/api/devin',
         apiKey: 'apk_user_ZW1haWx8NjkzNGIxYzVjYTkwY2JhNWQ3MWNkZDNlX29yZy02ODI3NzczYmQ3MTk0YzI0YTQyN2NkNGRiM2M4YmY2ZDozOGU3ZDU5NGYzNTI0MmU0OTYzNDNlOGIyNDJkY2QxZg==', // Your Devin API key
         timeout: 300000, // 5 minutes max per operation
     },
