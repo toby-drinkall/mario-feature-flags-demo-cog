@@ -662,30 +662,6 @@ FullScreenMario.FullScreenMario.settings.mods = {
                     this.ObjectMaker.getFunction("solid").prototype.firedeath = 0;
                 }
             }
-        }, {
-            "name": "Trip of Acid",
-            "description": "Sprites aren't cleared from the screen each game tick.",
-            "author": {
-                "name": "Josh Goldberg",
-                "email": "josh@fullscreenmario.com"
-            },
-            "enabled": false,
-            "events": {
-                "onModEnable": function (mod) {
-                    this.TimeHandler.addEvent(function () {
-                        this.PixelDrawer.setNoRefill(true);
-                    }.bind(this), 3);
-                },
-                "onSetLocation": function (mod) {
-                    this.PixelDrawer.setNoRefill(false);
-                    this.TimeHandler.addEvent(function () {
-                        this.PixelDrawer.setNoRefill(true);
-                    }.bind(this), 3);
-                },
-                "onModDisable": function (mod) {
-                    this.PixelDrawer.setNoRefill(false);
-                }
-            }
         }
     ]
 };
