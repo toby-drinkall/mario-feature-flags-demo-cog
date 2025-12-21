@@ -378,6 +378,49 @@ FullScreenMario.FullScreenMario.settings.mods = {
                             = this.ObjectMaker.getFunction("Area").prototype.gravity;
                 }
             }
+        }, { 
+            "name": "Tilt Gravity",
+            "description": "Tilting your device pushes characters around",
+            "author": {
+                "name": "Josh Goldberg",
+                "email": "josh@fullscreenmario.com"
+            },
+            "enabled": false,
+            "events": {
+                "onDeviceMotion": function (mod, event) {
+                    var characters = this.GroupHolder.getCharacterGroup(),
+                        acceleration = event.accelerationIncludingGravity,
+                        diff = -acceleration.x * this.unitsize,
+                        y = acceleration.y,
+                        character, i;
+                    
+                    for (i = 0; i < characters.length; i += 1) {
+                        character = characters[i];
+                        if (!character.player && !character.grounded) {
+                            this.shiftHoriz(character, diff);
+                        }
+                    }
+                    
+                    if (typeof mod.settings.y !== "undefined") {
+                        diff = (y - mod.settings.y) * this.unitsize * 2;
+                        if (diff > 0) {
+                            for (i = 0; i < characters.length; i += 1) {
+                                character = characters[i];
+                                if (!character.grounded) {
+                                    this.shiftVert(character, -diff);
+                                    character.yvel = -diff;
+                                    character.resting = undefined;
+                                }
+                            }
+                        }
+                    }
+                    
+                    mod.settings.y = y;
+                }
+            },
+            "settings": {
+                "y": undefined
+            }
         }, {
             "name": "Luigi",
             "description": "The little brother who could!",
