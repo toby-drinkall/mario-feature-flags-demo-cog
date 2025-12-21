@@ -29,6 +29,23 @@ document.onreadystatechange = function (event) {
             // DEBUG: Verify jump physics constant loaded correctly
             if (window.FSM.MapScreener) {
                 console.log('🎮 MapScreener.jumpmod_v2 =', window.FSM.MapScreener.jumpmod_v2, '(should be 2.112)');
+
+                // Create visual indicator in game window
+                var debugDiv = document.createElement('div');
+                debugDiv.id = 'jump-physics-debug';
+                debugDiv.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;font-size:14px;z-index:99999;border:2px solid #0f0;border-radius:8px;';
+                debugDiv.innerHTML = '<strong>Jump Physics Debug</strong><br>' +
+                    'jumpmod_v2: ' + (window.FSM.MapScreener.jumpmod_v2 || 'UNDEFINED') + '<br>' +
+                    'Expected: 2.112<br>' +
+                    'Status: ' + (window.FSM.MapScreener.jumpmod_v2 === 2.112 ? '✓ CORRECT' : '✗ WRONG');
+                document.body.appendChild(debugDiv);
+
+                // Auto-remove after 10 seconds
+                setTimeout(function() {
+                    if (debugDiv.parentNode) {
+                        debugDiv.parentNode.removeChild(debugDiv);
+                    }
+                }, 10000);
             }
 
             // FEATURE FLAG: PERFORMANCE_HUD - Start
