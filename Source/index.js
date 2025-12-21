@@ -42,12 +42,7 @@ document.onreadystatechange = function (event) {
                 }, 10000);
             }
 
-            // FEATURE FLAG: PERFORMANCE_HUD - Start
-            // Start HUD updates when game is ready
-            if (typeof window.PerformanceHUD !== 'undefined') {
-                window.PerformanceHUD.startUpdates();
-            }
-            // FEATURE FLAG: PERFORMANCE_HUD - End
+            // FEATURE FLAG: PERFORMANCE_HUD - Disabled
         } else {
             console.error('✗ FSM not available after initialization');
         }
