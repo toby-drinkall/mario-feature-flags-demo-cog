@@ -9,8 +9,20 @@ FullScreenMario.FullScreenMario.settings.math = {
             constants: FullScreenMario.IMapScreenr,
             equations: MathDecidr.IEquationContainer,
             player: FullScreenMario.IPlayer): void {
-            var jumpmod: number = player.FSM.MapScreener.jumpmod - player.xvel * .0014,
-                power: number = Math.pow(player.keys.jumplev, jumpmod),
+
+            // FEATURE FLAG: useEnhancedJumpPhysics
+            var jumpmod: number;
+            if (player.FSM.settings.features && player.FSM.settings.features.useEnhancedJumpPhysics) {
+                // NEW: Enhanced physics with momentum-based calculations
+                jumpmod = player.FSM.MapScreener.jumpmod * 1.2;
+                var momentum: number = player.xvel * 0.0018;
+                jumpmod = jumpmod - momentum;
+            } else {
+                // OLD: Original simple physics (will be removed when flag is deleted)
+                jumpmod = player.FSM.MapScreener.jumpmod - player.xvel * .0014;
+            }
+
+            var power: number = Math.pow(player.keys.jumplev, jumpmod),
                 dy: number = player.FSM.unitsize / power;
 
             player.yvel = Math.max(player.yvel - dy, constants.maxyvelinv);
@@ -29,9 +41,18 @@ FullScreenMario.FullScreenMario.settings.math = {
                 var dir: number = player.keys.run,
                     // No sprinting underwater
                     sprinting: number = Number(player.keys.sprint && !player.FSM.MapScreener.underwater) || 0,
-                    adder: number = dir * (.098 * (Number(sprinting) + 1)),
+                    adder: number,
                     decel: number = 0,
                     skiddingChanged: boolean = false;
+
+                // FEATURE FLAG: useFastRunning
+                if (player.FSM.settings.features && player.FSM.settings.features.useFastRunning) {
+                    // NEW: 25% faster acceleration
+                    adder = dir * (.1225 * (Number(sprinting) + 1));
+                } else {
+                    // OLD: Original speed (will be removed when flag is deleted)
+                    adder = dir * (.098 * (Number(sprinting) + 1));
+                }
 
                 // Reduce the speed, both by subtracting and dividing a little
                 player.xvel += adder || 0;

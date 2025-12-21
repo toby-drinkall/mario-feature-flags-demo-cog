@@ -7,3 +7,4 @@ npm-debug.log
 
 # Devin API credentials - DO NOT COMMIT
 Source/devin-api-config.js
+Source/dashboard-config.js

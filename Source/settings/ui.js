@@ -319,7 +319,31 @@ FullScreenMario.FullScreenMario.settings.ui = {
             "keyActive": "enabled",
             "assumeInactive": true,
             "options": function (GameStarter) {
-                return GameStarter.ModAttacher.getMods();
+                // Get all mods from ModAttacher
+                var allMods = GameStarter.ModAttacher.getMods();
+
+                // Filter out removed features based on localStorage
+                try {
+                    var removedFeatures = localStorage.getItem('removed_features');
+                    if (removedFeatures) {
+                        var removed = JSON.parse(removedFeatures);
+                        var removedNames = removed.map(function(r) { return r.name; });
+
+                        // Filter mods: only show those NOT in removed list
+                        var filteredMods = {};
+                        for (var modName in allMods) {
+                            if (allMods.hasOwnProperty(modName) && removedNames.indexOf(modName) === -1) {
+                                filteredMods[modName] = allMods[modName];
+                            }
+                        }
+                        return filteredMods;
+                    }
+                } catch (e) {
+                    console.error('Error filtering removed mods:', e);
+                }
+
+                // Fallback: return all mods if filtering fails
+                return allMods;
             },
             "callback": function (GameStarter, schema, button) {
                 GameStarter.ModAttacher.toggleMod(button.getAttribute("value") || button.textContent);

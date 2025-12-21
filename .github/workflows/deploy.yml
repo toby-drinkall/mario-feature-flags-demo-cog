@@ -1,0 +1,39 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master  # Deploy when master branch is updated
+  pull_request_target:
+    types: [closed]  # Also deploy when PRs are merged
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Only run if PR was merged or direct push to master
+    if: github.event_name == 'push' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: master  # Always deploy from master
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./Source  # Deploy Source folder with dashboard
+          publish_branch: gh-pages
+          cname: false  # Set to your custom domain if you have one
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
