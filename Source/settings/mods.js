@@ -243,6 +243,100 @@ FullScreenMario.FullScreenMario.settings.mods = {
             },
             "settings": {}
         }, {
+            // http://www.themushroomkingdom.net/smb_breakdown.shtml#hard
+            "name": "Hard Mode",
+            "description": "Like in Super Mario Bros Deluxe!",
+            "author": {
+                "name": "Josh Goldberg",
+                "email": "josh@fullscreenmario.com"
+            },
+            "enabled": false,
+            "events": {
+                "onAddThing": function (mod, thing) {
+                    var spawn;
+                    if (thing.title === "Goomba") {
+                        spawn = thing.FSM.killReplace(
+                            thing,
+                            "Beetle", 
+                            undefined,
+                            [ "direction", "moveleft", "lookleft", "xvel", "yvel", "speed" ]
+                        );
+                        spawn.mod = "Hard Mode";
+                    }
+                    else if (thing.title === "Platform") {
+                        thing.FSM.reduceWidth(thing, thing.FSM.unitsize * 8, true);
+                        thing.FSM.shiftHoriz(thing, thing.FSM.unitsize * 4);
+                    }
+                    
+                    if (thing.groupType === "Character") {
+                        thing.speed *= 1.4;
+                    }
+                },
+                "onModEnable": function (mod) {
+                    var FSM = FullScreenMario.FullScreenMario.prototype.ensureCorrectCaller(this),
+                        characters = FSM.GroupHolder.getCharacterGroup(),
+                        solids = FSM.GroupHolder.getSolidGroup(),
+                        attributes = ["direction", "moveleft", "lookleft", "xvel", "yvel", "speed"],
+                        spawn, thing, i;
+                    
+                    for (i = 0; i < characters.length; i += 1) {
+                        thing = characters[i];
+                        if (thing.title === "Goomba") {
+                            spawn = thing.FSM.killReplace(
+                                thing, 
+                                "Beetle", 
+                                undefined,
+                                attributes
+                            );
+                            spawn.mod = "Hard Mode";
+                            if (thing.xvel > 0) {
+                                spawn.FSM.flipHoriz(spawn);
+                            } else {
+                                spawn.FSM.unflipHoriz(spawn);
+                            }
+                        }
+                        thing.speed *= 1.4;
+                    }
+                    
+                    for(i = 0; i < solids.length; i += 1) {
+                        thing = solids[i];
+                        if(thing.title === "Platform") {
+                            thing.FSM.reduceWidth(thing, thing.FSM.unitsize * 8, true);
+                            thing.FSM.shiftHoriz(thing, thing.FSM.unitsize * 4);
+                        }
+                    }
+                },
+                "onModDisable": function (mod) {
+                    var FSM = FullScreenMario.FullScreenMario.prototype.ensureCorrectCaller(this),
+                        characters = FSM.GroupHolder.getCharacterGroup(),
+                        solids = FSM.GroupHolder.getSolidGroup(),
+                        attributes = ["direction", "moveleft", "lookleft", "xvel", "yvel", "speed"],
+                        thing, i;
+                    
+                    for (i = 0; i < characters.length; i += 1) {
+                        thing = characters[i];
+                        if (thing.title === "Beetle" && thing.mod === "Hard Mode") {
+                            thing.FSM.killReplace(
+                                thing, 
+                                "Goomba", 
+                                undefined,
+                                attributes
+                            );
+                        } else {
+                            thing.speed /= 1.4;
+                        }
+                    }
+                    
+                    for (i = 0; i < solids.length; i += 1) {
+                        thing = solids[i];
+                        if (thing.title === "Platform") {
+                            thing.FSM.increaseWidth(thing, thing.FSM.unitsize * 8);
+                            thing.FSM.shiftHoriz(thing, thing.FSM.unitsize * -4);
+                        }
+                    }
+                }
+            }
+        }, {
             "name": "High Speed",
             "description": "Mario's maximum speed is quadrupled.",
             "author": {
