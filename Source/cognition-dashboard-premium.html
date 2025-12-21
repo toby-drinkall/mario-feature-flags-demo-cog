@@ -510,23 +510,21 @@
         };
 
         // Feature data
+        // NOTE: This list is synchronized with Source/settings/mods.js
+        // Only features that currently exist in the codebase should be listed here
         const modsData = [
             { name: "Bouncy Bounce", description: "Mario landing causes him to jump.", file: "Source/settings/mods.js", lineStart: 5, lineEnd: 35, lines: 31, category: "movement" },
             { name: "Dark is the Night", description: "Dark theme visual.", file: "Source/settings/mods.js", lineStart: 37, lineEnd: 82, lines: 46, category: "visual" },
             { name: "Earthquake!", description: "Mario landing causes everything to jump.", file: "Source/settings/mods.js", lineStart: 84, lineEnd: 158, lines: 75, category: "movement" },
             { name: "Gradient Skies", description: "Smooth gradient backgrounds.", file: "Source/settings/mods.js", lineStart: 160, lineEnd: 245, lines: 86, category: "visual" },
-            { name: "Hard Mode", description: "Harder enemies and faster gameplay.", file: "Source/settings/mods.js", lineStart: 247, lineEnd: 338, lines: 92, category: "gameplay" },
             { name: "High Speed", description: "Mario runs 14x faster.", file: "Source/settings/mods.js", lineStart: 340, lineEnd: 372, lines: 33, category: "movement" },
             { name: "Infinite Lives", description: "Lives never decrease.", file: "Source/settings/mods.js", lineStart: 374, lineEnd: 410, lines: 37, category: "gameplay" },
             { name: "Invincibility", description: "Permanent star power.", file: "Source/settings/mods.js", lineStart: 412, lineEnd: 440, lines: 29, category: "gameplay" },
             { name: "Parallax Clouds", description: "Clouds scroll at 70% speed.", file: "Source/settings/mods.js", lineStart: 442, lineEnd: 456, lines: 15, category: "visual" },
             { name: "Low Gravity", description: "Reduced gravity.", file: "Source/settings/mods.js", lineStart: 458, lineEnd: 474, lines: 17, category: "movement" },
             { name: "Luigi", description: "Play as Luigi.", file: "Source/settings/mods.js", lineStart: 476, lineEnd: 507, lines: 32, category: "character" },
-            { name: "Tilt Gravity", description: "Device motion controls gravity.", file: "Source/settings/mods.js", lineStart: 509, lineEnd: 550, lines: 42, category: "movement" },
             { name: "Palette Swap", description: "Random color palettes.", file: "Source/settings/mods.js", lineStart: 552, lineEnd: 616, lines: 65, category: "visual" },
-            { name: "QCount", description: "Press Q to spawn enemies.", file: "Source/settings/mods.js", lineStart: 618, lineEnd: 689, lines: 72, category: "gameplay" },
-            { name: "Super Fireballs", description: "Fireballs destroy blocks.", file: "Source/settings/mods.js", lineStart: 691, lineEnd: 707, lines: 17, category: "gameplay" },
-            { name: "Trip of Acid", description: "Screen trails effect.", file: "Source/settings/mods.js", lineStart: 709, lineEnd: 733, lines: 25, category: "visual" }
+            { name: "QCount", description: "Press Q to spawn enemies.", file: "Source/settings/mods.js", lineStart: 618, lineEnd: 689, lines: 72, category: "gameplay" }
         ];
 
         // Feature Flags data - actual features from the codebase
