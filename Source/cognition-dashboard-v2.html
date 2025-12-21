@@ -488,31 +488,26 @@
 </head>
 <body>
     <script>
-        // FORCE CORRECT STATE ON LOAD - Synced with GitHub
+        // FORCE CORRECT STATE ON LOAD - Synced with GitHub (PR #33 MERGED!)
         console.log('🔄 Loading correct state from GitHub...');
         localStorage.clear();
 
-        // 3 features removed (no recovery PR yet)
+        // 3 features removed (no recovery yet)
         const removed = [
             { name: 'Tilt Gravity', prNumber: 13, removedAt: Date.now() - 86400000, lines: 42, category: 'movement', file: 'Source/settings/mods.js', lineStart: 509, lineEnd: 550 },
             { name: 'Hard Mode', prNumber: 26, removedAt: Date.now() - 43200000, lines: 92, category: 'gameplay', file: 'Source/settings/mods.js', lineStart: 273, lineEnd: 364 },
             { name: 'Super Fireballs', prNumber: 27, removedAt: Date.now() - 21600000, lines: 17, category: 'gameplay', file: 'Source/settings/mods.js', lineStart: 366, lineEnd: 382 }
         ];
 
-        // Trip of Acid has OPEN recovery PR #33
-        const pendingRestoration = [
-            { name: 'Trip of Acid', prNumber: 33, createdAt: Date.now() - 3600000, prUrl: 'https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/33', lines: 25, category: 'visual', file: 'Source/settings/mods.js', lineStart: 247, lineEnd: 271 }
-        ];
-
         localStorage.setItem('removed_features', JSON.stringify(removed));
-        localStorage.setItem('pending_restoration', JSON.stringify(pendingRestoration));
+        localStorage.setItem('pending_restoration', JSON.stringify([])); // PR #33 merged!
         localStorage.setItem('pending_removal', JSON.stringify([]));
         localStorage.setItem('enabled_features', JSON.stringify([]));
 
         console.log('✅ Correct state loaded:');
-        console.log('  - 12 Active features');
+        console.log('  - 13 Active features (Trip of Acid restored via PR #33!)');
         console.log('  - 3 Removed (Tilt Gravity, Hard Mode, Super Fireballs)');
-        console.log('  - 1 Pending Restoration (Trip of Acid PR #33)');
+        console.log('  - 0 Pending operations');
         console.log('  TOTAL: 16 features');
     </script>
 
@@ -556,6 +551,7 @@
             { name: "Low Gravity", description: "Reduced gravity.", file: "Source/settings/mods.js", lineStart: 458, lineEnd: 474, lines: 17, category: "movement" },
             { name: "Luigi", description: "Play as Luigi.", file: "Source/settings/mods.js", lineStart: 476, lineEnd: 507, lines: 32, category: "character" },
             { name: "Palette Swap", description: "Random color palettes.", file: "Source/settings/mods.js", lineStart: 552, lineEnd: 616, lines: 65, category: "visual" },
+            { name: "Trip of Acid", description: "Sprites aren't cleared from screen.", file: "Source/settings/mods.js", lineStart: 554, lineEnd: 577, lines: 24, category: "visual" },
             { name: "QCount", description: "Press Q to spawn enemies.", file: "Source/settings/mods.js", lineStart: 618, lineEnd: 689, lines: 72, category: "gameplay" }
         ];
 
