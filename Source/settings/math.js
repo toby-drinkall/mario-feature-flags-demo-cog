@@ -29,6 +29,16 @@ FullScreenMario.FullScreenMario.settings.math = {
          */
         "decreasePlayerJumpingYvel": function (constants, equations, player) {
             var jumpmod_v2 = player.FSM.MapScreener.jumpmod_v2 - player.xvel * .0014, power = Math.pow(player.keys.jumplev, jumpmod_v2), dy = player.FSM.unitsize / power;
+            // DEBUG: Log jump physics values (only log occasionally to avoid spam)
+            if (Math.random() < 0.01) {
+                console.log('Jump Physics Debug:', {
+                    jumpmod_v2_constant: player.FSM.MapScreener.jumpmod_v2,
+                    jumpmod_v2_adjusted: jumpmod_v2,
+                    power: power,
+                    dy: dy,
+                    yvel_before: player.yvel
+                });
+            }
             player.yvel = Math.max(player.yvel - dy, constants.maxyvelinv);
         },
         /**
