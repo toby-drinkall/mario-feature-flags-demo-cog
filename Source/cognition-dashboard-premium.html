@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
-    <script src="devin-api-config.js"></script>
+    <script src="devin-api-config.js?v=1766138600"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -464,6 +464,206 @@
                 -1px -1px 0 #fca5a5,
                 1px 1px 0 #fca5a5;
         }
+
+        /* Chatbot Panel Styles */
+        .chatbot-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 400px;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chatbot-panel.collapsed {
+            transform: translateX(360px);
+        }
+
+        .dark .chatbot-panel-inner {
+            background: rgba(15, 15, 35, 0.95);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .light .chatbot-panel-inner {
+            background: rgba(255, 255, 255, 0.98);
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .chatbot-toggle {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 80px;
+            border-radius: 8px 0 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dark .chatbot-toggle {
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: none;
+        }
+
+        .dark .chatbot-toggle:hover {
+            background: rgba(26, 26, 46, 1);
+        }
+
+        .light .chatbot-toggle {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-right: none;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .light .chatbot-toggle:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .dark .chat-message.user {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .light .chat-message.user {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .chat-message.assistant {
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .dark .chat-message.assistant {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .light .chat-message.assistant {
+            background: rgba(0, 0, 0, 0.05);
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        .chat-input-container {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .light .chat-input-container {
+            border-top-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .dark .chat-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .dark .chat-input:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .dark .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .light .chat-input {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #0f172a;
+        }
+
+        .light .chat-input:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .light .chat-input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .dark .typing-indicator span {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .light .typing-indicator span {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* Adjust main content when chatbot is open */
+        .main-content-with-chat {
+            margin-right: 400px;
+            transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content-without-chat {
+            margin-right: 40px;
+            transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
 <body>
@@ -563,10 +763,80 @@
         }
 
         function isDevinAPIConfigured() {
-            const configured = window.DevinAPI &&
-                   window.DevinAPI.config.apiUrl !== 'YOUR_DEVIN_API_URL' &&
-                   window.DevinAPI.config.apiKey !== 'YOUR_API_KEY';
-            return configured;
+            return window.DevinAPI && window.DevinAPI.isConfigured && window.DevinAPI.isConfigured();
+        }
+
+        // Check server status asynchronously
+        async function checkServerAPIStatus() {
+            if (window.DevinAPI && window.DevinAPI.checkServerStatus) {
+                const status = await window.DevinAPI.checkServerStatus();
+                return status;
+            }
+            return { configured: false, mode: 'simulation', message: 'Simulation Mode' };
+        }
+
+        // API Configuration Modal Component
+        function APIConfigModal({ onClose, onConfigured }) {
+            const [apiKey, setApiKey] = useState('');
+            const [error, setError] = useState(null);
+            const [saving, setSaving] = useState(false);
+
+            const handleSave = () => {
+                if (!apiKey || apiKey.length < 10) {
+                    setError('Please enter a valid API key');
+                    return;
+                }
+                setSaving(true);
+                try {
+                    window.DevinAPI.configure(apiKey);
+                    onConfigured();
+                    onClose();
+                } catch (err) {
+                    setError(err.message);
+                    setSaving(false);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
+                    <div className="glass-card rounded-3xl max-w-md w-full mx-4 p-6">
+                        <h2 className="text-xl font-semibold text-primary mb-4">Configure Devin API</h2>
+                        <p className="text-sm text-secondary mb-4">
+                            Enter your Devin API key to enable real automation. The key is stored securely in your browser's localStorage.
+                        </p>
+                        
+                        {error && (
+                            <div className="mb-4 p-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+                                {error}
+                            </div>
+                        )}
+
+                        <input
+                            type="password"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            placeholder="Enter your Devin API key..."
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-primary placeholder-tertiary focus:outline-none focus:border-blue-500/50 mb-4"
+                        />
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onClose}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all shadow-lg disabled:opacity-50"
+                            >
+                                {saving ? 'Saving...' : 'Save API Key'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         // Components
@@ -776,11 +1046,14 @@
         function AutomationModal({ feature, type, onComplete, onCancel }) {
             const [currentStep, setCurrentStep] = useState(-1);
             const [sessionId, setSessionId] = useState(null);
+            const [sessionUrl, setSessionUrl] = useState(null);
             const [subDetails, setSubDetails] = useState({});
             const [prNumber, setPrNumber] = useState(null);
             const [error, setError] = useState(null);
             const [useRealAPI, setUseRealAPI] = useState(false);
             const [isStopped, setIsStopped] = useState(false);
+            const [progressLog, setProgressLog] = useState([]);
+            const [devinStatus, setDevinStatus] = useState(null);
             const steps = type === 'remove' ? removalSteps :
                          type === 'enable' ? enableSteps :
                          type === 'return-to-staging' ? returnToStagingSteps :
@@ -792,8 +1065,7 @@
                 const step = steps[currentStep];
 
                 if (useRealAPI) {
-                    // Real Devin API integration - handled in startAutomation
-                    // This useEffect just manages the step progression display
+                    // Real Devin API integration - progress is handled via onProgress callback
                 } else {
                     // Simulation mode
                     const timer = setTimeout(() => {
@@ -835,6 +1107,22 @@
                 }
             }, [currentStep, useRealAPI, isStopped]);
 
+            // Progress callback for real Devin API
+            const handleDevinProgress = (status) => {
+                setDevinStatus(status);
+                const timestamp = new Date().toLocaleTimeString();
+                const statusMsg = status.status_enum || status.state || 'working';
+                setProgressLog(prev => [...prev.slice(-20), `[${timestamp}] Status: ${statusMsg}`]);
+                
+                // Map Devin status to step progression
+                if (status.status_enum === 'running') {
+                    // Advance through steps based on time elapsed
+                    if (currentStep < steps.length - 1) {
+                        setCurrentStep(prev => Math.min(prev + 1, steps.length - 2));
+                    }
+                }
+            };
+
             const startAutomation = async () => {
                 const configured = isDevinAPIConfigured();
                 setUseRealAPI(configured);
@@ -843,57 +1131,43 @@
                     // Real Devin API call
                     try {
                         setCurrentStep(0);
+                        setProgressLog([`[${new Date().toLocaleTimeString()}] Starting Devin automation...`]);
 
+                        let result;
+                        
                         if (type === 'remove') {
                             // Call real Devin API to remove feature
-                            const result = await window.DevinAPI.removeFeatureFlag(feature);
-
-                            // Update UI with real results
-                            setSessionId(result.sessionId);
-                            setPrNumber(result.prNumber);
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`],
-                                backup: [
-                                    `Backup: ${result.backupPath}`,
-                                    `Size: ${(feature.lines * 0.08).toFixed(1)} KB (${feature.lines} lines)`
-                                ],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
-                            });
-
-                            // Progress through steps to completion
-                            for (let i = 0; i < steps.length; i++) {
-                                if (isStopped) break;
-                                setCurrentStep(i);
-                                await new Promise(resolve => setTimeout(resolve, 800));
-                            }
-
-                            if (!isStopped) {
-                                setTimeout(() => onComplete(result.prNumber), 500);
-                            }
-                        } else {
+                            result = await window.DevinAPI.removeFeatureFlag(feature, handleDevinProgress);
+                        } else if (type === 'enable') {
+                            // Call real Devin API to enable feature permanently
+                            result = await window.DevinAPI.enableFeaturePermanently(feature, handleDevinProgress);
+                        } else if (type === 'recover' || type === 'return-to-staging') {
                             // Call real Devin API to recover feature
-                            const result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber);
+                            result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber, handleDevinProgress);
+                        }
 
-                            setSessionId(result.sessionId);
-                            setPrNumber(result.prNumber);
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
-                            });
+                        // Update UI with real results
+                        setSessionId(result.sessionId);
+                        setSessionUrl(result.sessionUrl);
+                        setProgressLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] Session created: ${result.sessionId}`]);
+                        
+                        // Mark all steps as complete
+                        setCurrentStep(steps.length - 1);
+                        setSubDetails({
+                            init: [`Session: ${result.sessionId}`],
+                            pr: [result.sessionUrl ? `View session: ${result.sessionUrl}` : 'Session completed']
+                        });
 
-                            for (let i = 0; i < steps.length; i++) {
-                                if (isStopped) break;
-                                setCurrentStep(i);
-                                await new Promise(resolve => setTimeout(resolve, 800));
-                            }
-
-                            if (!isStopped) {
-                                setTimeout(() => onComplete(result.prNumber), 500);
-                            }
+                        if (!isStopped) {
+                            // Use a simulated PR number for now (real PR will be created by Devin)
+                            const simulatedPR = getNextPR();
+                            setPrNumber(simulatedPR);
+                            setTimeout(() => onComplete(simulatedPR), 1000);
                         }
                     } catch (err) {
                         console.error('Devin API error:', err);
                         setError(err.message || 'Failed to communicate with Devin API');
+                        setProgressLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] Error: ${err.message}`]);
                         setCurrentStep(-1);
                     }
                 } else {
@@ -1085,6 +1359,30 @@
                             })}
                         </div>
 
+                        {/* Live Progress Log for Real API */}
+                        {useRealAPI && progressLog.length > 0 && (
+                            <div className="mb-4 p-3 rounded-xl bg-black/30 border border-white/10 max-h-32 overflow-y-auto">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-medium text-tertiary">Live Progress</span>
+                                    {sessionUrl && (
+                                        <a
+                                            href={sessionUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-400 hover:text-blue-300 hover:underline"
+                                        >
+                                            View Devin Session
+                                        </a>
+                                    )}
+                                </div>
+                                <div className="space-y-1 font-mono text-xs text-tertiary">
+                                    {progressLog.map((log, i) => (
+                                        <div key={i}>{log}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <button
                             onClick={() => {
                                 setIsStopped(true);
@@ -1107,6 +1405,303 @@
             );
         }
 
+        // Chatbot Component
+        function Chatbot({ isOpen, onToggle, onTriggerAction, features, removedFeatures, enabledFeatures }) {
+            const [messages, setMessages] = useState([
+                { role: 'assistant', content: 'Hi! I can help you manage feature flags. Try commands like:\n\n- "remove [feature name]"\n- "recover [feature name]"\n- "enable [feature name]"\n- "list features"\n- "help"' }
+            ]);
+            const [input, setInput] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const messagesEndRef = useRef(null);
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const findFeature = (name) => {
+                const normalizedName = name.toLowerCase().trim();
+                return modsData.find(f => f.name.toLowerCase() === normalizedName);
+            };
+
+            const findRemovedFeature = (name) => {
+                const normalizedName = name.toLowerCase().trim();
+                return removedFeatures.find(f => f.name.toLowerCase() === normalizedName);
+            };
+
+            const findEnabledFeature = (name) => {
+                const normalizedName = name.toLowerCase().trim();
+                return enabledFeatures.find(f => f.name.toLowerCase() === normalizedName);
+            };
+
+            const processCommand = async (userMessage) => {
+                const msg = userMessage.toLowerCase().trim();
+                
+                // Help command
+                if (msg === 'help' || msg === '?') {
+                    return {
+                        content: 'Available commands:\n\n- "remove [feature]" - Remove a feature flag permanently\n- "recover [feature]" - Recover a removed feature\n- "enable [feature]" - Enable a feature permanently\n- "return [feature] to staging" - Return enabled feature to staging\n- "list features" - Show all available features\n- "list removed" - Show removed features\n- "list enabled" - Show enabled features\n- "status" - Show current status',
+                        action: null
+                    };
+                }
+
+                // List features
+                if (msg === 'list features' || msg === 'list' || msg === 'features') {
+                    const activeFeatures = modsData.filter(m => 
+                        !removedFeatures.find(r => r.name === m.name) && 
+                        !enabledFeatures.find(e => e.name === m.name)
+                    );
+                    const featureList = activeFeatures.map(f => `- ${f.name}`).join('\n');
+                    return {
+                        content: `Active features (${activeFeatures.length}):\n\n${featureList}`,
+                        action: null
+                    };
+                }
+
+                // List removed
+                if (msg === 'list removed' || msg === 'removed') {
+                    if (removedFeatures.length === 0) {
+                        return { content: 'No features have been removed yet.', action: null };
+                    }
+                    const list = removedFeatures.map(f => `- ${f.name} (PR #${f.prNumber})`).join('\n');
+                    return {
+                        content: `Removed features (${removedFeatures.length}):\n\n${list}`,
+                        action: null
+                    };
+                }
+
+                // List enabled
+                if (msg === 'list enabled' || msg === 'enabled') {
+                    if (enabledFeatures.length === 0) {
+                        return { content: 'No features have been permanently enabled yet.', action: null };
+                    }
+                    const list = enabledFeatures.map(f => `- ${f.name} (PR #${f.prNumber})`).join('\n');
+                    return {
+                        content: `Enabled features (${enabledFeatures.length}):\n\n${list}`,
+                        action: null
+                    };
+                }
+
+                // Status
+                if (msg === 'status') {
+                    const activeCount = modsData.filter(m => 
+                        !removedFeatures.find(r => r.name === m.name) && 
+                        !enabledFeatures.find(e => e.name === m.name)
+                    ).length;
+                    return {
+                        content: `Current status:\n\n- Active features: ${activeCount}\n- Enabled features: ${enabledFeatures.length}\n- Removed features: ${removedFeatures.length}`,
+                        action: null
+                    };
+                }
+
+                // Remove command
+                const removeMatch = msg.match(/^remove\s+(.+)$/i);
+                if (removeMatch) {
+                    const featureName = removeMatch[1].trim();
+                    const feature = findFeature(featureName);
+                    
+                    if (!feature) {
+                        const suggestions = modsData
+                            .filter(f => f.name.toLowerCase().includes(featureName.toLowerCase()))
+                            .slice(0, 3)
+                            .map(f => f.name);
+                        
+                        if (suggestions.length > 0) {
+                            return {
+                                content: `Feature "${featureName}" not found. Did you mean:\n${suggestions.map(s => `- ${s}`).join('\n')}`,
+                                action: null
+                            };
+                        }
+                        return { content: `Feature "${featureName}" not found. Type "list features" to see available features.`, action: null };
+                    }
+
+                    if (removedFeatures.find(r => r.name === feature.name)) {
+                        return { content: `"${feature.name}" has already been removed. Use "recover ${feature.name}" to restore it.`, action: null };
+                    }
+
+                    if (enabledFeatures.find(e => e.name === feature.name)) {
+                        return { content: `"${feature.name}" is currently enabled. Use "return ${feature.name} to staging" first.`, action: null };
+                    }
+
+                    return {
+                        content: `Starting removal of "${feature.name}"...`,
+                        action: { type: 'remove', feature }
+                    };
+                }
+
+                // Recover command
+                const recoverMatch = msg.match(/^recover\s+(.+)$/i);
+                if (recoverMatch) {
+                    const featureName = recoverMatch[1].trim();
+                    const feature = findRemovedFeature(featureName);
+                    
+                    if (!feature) {
+                        if (removedFeatures.length === 0) {
+                            return { content: 'No features have been removed yet.', action: null };
+                        }
+                        return { 
+                            content: `Feature "${featureName}" is not in the removed list. Removed features:\n${removedFeatures.map(f => `- ${f.name}`).join('\n')}`, 
+                            action: null 
+                        };
+                    }
+
+                    return {
+                        content: `Starting recovery of "${feature.name}"...`,
+                        action: { type: 'recover', feature }
+                    };
+                }
+
+                // Enable command
+                const enableMatch = msg.match(/^enable\s+(.+)$/i);
+                if (enableMatch) {
+                    const featureName = enableMatch[1].trim();
+                    const feature = findFeature(featureName);
+                    
+                    if (!feature) {
+                        return { content: `Feature "${featureName}" not found. Type "list features" to see available features.`, action: null };
+                    }
+
+                    if (enabledFeatures.find(e => e.name === feature.name)) {
+                        return { content: `"${feature.name}" is already enabled.`, action: null };
+                    }
+
+                    if (removedFeatures.find(r => r.name === feature.name)) {
+                        return { content: `"${feature.name}" has been removed. Use "recover ${feature.name}" first.`, action: null };
+                    }
+
+                    return {
+                        content: `Starting permanent enable of "${feature.name}"...`,
+                        action: { type: 'enable', feature }
+                    };
+                }
+
+                // Return to staging command
+                const returnMatch = msg.match(/^return\s+(.+?)\s+to\s+staging$/i);
+                if (returnMatch) {
+                    const featureName = returnMatch[1].trim();
+                    const feature = findEnabledFeature(featureName);
+                    
+                    if (!feature) {
+                        if (enabledFeatures.length === 0) {
+                            return { content: 'No features have been enabled yet.', action: null };
+                        }
+                        return { 
+                            content: `Feature "${featureName}" is not in the enabled list. Enabled features:\n${enabledFeatures.map(f => `- ${f.name}`).join('\n')}`, 
+                            action: null 
+                        };
+                    }
+
+                    return {
+                        content: `Returning "${feature.name}" to staging...`,
+                        action: { type: 'return-to-staging', feature }
+                    };
+                }
+
+                // Unknown command
+                return {
+                    content: 'I didn\'t understand that command. Type "help" to see available commands.',
+                    action: null
+                };
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!input.trim()) return;
+
+                const userMessage = input.trim();
+                setInput('');
+                setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+                setIsTyping(true);
+
+                // Simulate processing delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const response = await processCommand(userMessage);
+                setIsTyping(false);
+                setMessages(prev => [...prev, { role: 'assistant', content: response.content }]);
+
+                if (response.action) {
+                    onTriggerAction(response.action);
+                }
+            };
+
+            return (
+                <div className={`chatbot-panel ${isOpen ? '' : 'collapsed'}`}>
+                    <div className="chatbot-panel-inner h-full flex flex-col">
+                        {/* Toggle Button */}
+                        <div className="chatbot-toggle" onClick={onToggle}>
+                            <svg 
+                                className={`w-5 h-5 text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                        </div>
+
+                        {/* Header */}
+                        <div className="p-4 border-b border-white/10 dark:border-white/10 light:border-slate-200">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-primary">Feature Assistant</h3>
+                                    <p className="text-xs text-tertiary">Manage flags via chat</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Messages */}
+                        <div className="chat-messages">
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`chat-message ${msg.role}`}>
+                                    <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                                </div>
+                            ))}
+                            {isTyping && (
+                                <div className="chat-message assistant">
+                                    <div className="typing-indicator">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        {/* Input */}
+                        <form onSubmit={handleSubmit} className="chat-input-container">
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    placeholder="Type a command..."
+                                    className="chat-input flex-1"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl transition-all"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
         function Dashboard() {
             const [isDark, setIsDark] = useTheme();
             const [gameWindow, setGameWindow] = useState(null);
@@ -1123,6 +1718,23 @@
             const [activeModal, setActiveModal] = useState(null);
             const [activeTab, setActiveTab] = useState('deployed');
             const [prStatuses, setPrStatuses] = useState({});
+            const [chatbotOpen, setChatbotOpen] = useState(true);
+
+            // Handler for chatbot actions
+            const handleChatbotAction = (action) => {
+                setActiveModal({ type: action.type, feature: action.feature });
+            };
+            const [showAPIConfig, setShowAPIConfig] = useState(false);
+            const [apiConfigured, setApiConfigured] = useState(isDevinAPIConfigured());
+            const [apiStatusMessage, setApiStatusMessage] = useState('Checking...');
+
+            // Check server API status on load
+            useEffect(() => {
+                checkServerAPIStatus().then(status => {
+                    setApiConfigured(status.configured || isDevinAPIConfigured());
+                    setApiStatusMessage(status.message || (status.configured ? 'Devin API Ready' : 'Simulation Mode'));
+                });
+            }, []);
 
             // Check PR merge status periodically
             useEffect(() => {
@@ -1305,7 +1917,7 @@
 
             return (
                 <div className="min-h-screen p-6">
-                    <div className="max-w-7xl mx-auto">
+                    <div className={`max-w-7xl mx-auto ${chatbotOpen ? 'main-content-with-chat' : 'main-content-without-chat'}`}>
                         {/* Header */}
                         <div className="mb-8">
                             <div className="flex items-start justify-between mb-4">
@@ -1315,6 +1927,16 @@
                                     <p className="text-sm text-tertiary">Real-time control and automated removal</p>
                                 </div>
                                 <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setShowAPIConfig(true)}
+                                        className={`p-3 glass-card rounded-xl transition-all hover:scale-105 ${apiConfigured ? 'border border-emerald-500/30' : 'border border-amber-500/30'}`}
+                                        title={apiConfigured ? 'Devin API configured' : 'Configure Devin API'}
+                                    >
+                                        <svg className={`w-5 h-5 ${apiConfigured ? 'text-emerald-400' : 'text-amber-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </button>
                                     <button
                                         onClick={() => setIsDark(!isDark)}
                                         className="p-3 glass-card rounded-xl transition-all hover:scale-105"
@@ -1464,6 +2086,22 @@
                                 }
                             }}
                             onCancel={() => setActiveModal(null)}
+                        />
+                    )}
+
+                    {/* Chatbot Panel */}
+                    <Chatbot
+                        isOpen={chatbotOpen}
+                        onToggle={() => setChatbotOpen(!chatbotOpen)}
+                        onTriggerAction={handleChatbotAction}
+                        features={activeFeatures}
+                        removedFeatures={removedFeatures}
+                        enabledFeatures={enabledFeatures}
+                    />
+                    {showAPIConfig && (
+                        <APIConfigModal
+                            onClose={() => setShowAPIConfig(false)}
+                            onConfigured={() => setApiConfigured(true)}
                         />
                     )}
                 </div>

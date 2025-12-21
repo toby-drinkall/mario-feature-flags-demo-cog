@@ -5,5 +5,8 @@ Source/**/*.txt
 node_modules/
 npm-debug.log
 
-# Devin API credentials - DO NOT COMMIT
-Source/devin-api-config.js
+# Note: devin-api-config.js is now safe to commit - API key stored in localStorage
+
+# Environment variables (contains API keys)
+.env
+.env.local
