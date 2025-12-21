@@ -345,22 +345,6 @@ FullScreenMario.FullScreenMario.settings.mods = {
                 }
             }
         }, {
-            "name": "Parallax Clouds",
-            "description": "Clouds in the sky scroll at about 63% the normal rate.",
-            "author": {
-                "name": "Josh Goldberg",
-                "email": "josh@fullscreenmario.com"
-            },
-            "enabled": false,
-            "events": {
-                "onModEnable": function () {
-                    this.ObjectMaker.getFunction("Cloud").prototype.parallaxHoriz = .7;
-                },
-                "onModDisable": function () {
-                    this.ObjectMaker.getFunction("Cloud").prototype.parallaxHoriz = undefined;
-                }
-            }
-        }, {
             "name": "Low Gravity",
             "description": "I believe I can fly!",
             "author": {
