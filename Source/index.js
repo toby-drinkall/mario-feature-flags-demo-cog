@@ -12,13 +12,7 @@ document.onreadystatechange = function (event) {
 
     console.log("It took " + (Date.now() - time) + " milliseconds to start."), UserWrapper.displayHelpMenu();
 
-    // FEATURE FLAG: PERFORMANCE_HUD - Start
-    // Initialize Performance HUD tracking
-    if (typeof window.PerformanceHUD !== 'undefined') {
-        window.PerformanceHUD.initialize();
-        console.log('✓ Performance HUD initialized');
-    }
-    // FEATURE FLAG: PERFORMANCE_HUD - End
+    // FEATURE FLAG: PERFORMANCE_HUD - Disabled to avoid overlap with debug info
 
     // Wait a moment for FSM to be fully initialized, then mark as running
     setTimeout(function() {
@@ -33,11 +27,11 @@ document.onreadystatechange = function (event) {
                 // Create visual indicator in game window
                 var debugDiv = document.createElement('div');
                 debugDiv.id = 'jump-physics-debug';
-                debugDiv.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;font-size:14px;z-index:99999;border:2px solid #0f0;border-radius:8px;';
+                debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;font-size:14px;z-index:99999;border:2px solid #0f0;border-radius:8px;';
                 debugDiv.innerHTML = '<strong>Jump Physics Debug</strong><br>' +
                     'jumpmod_v2: ' + (window.FSM.MapScreener.jumpmod_v2 || 'UNDEFINED') + '<br>' +
-                    'Expected: 2.112<br>' +
-                    'Status: ' + (window.FSM.MapScreener.jumpmod_v2 === 2.112 ? '✓ CORRECT' : '✗ WRONG');
+                    'Expected: 0.528<br>' +
+                    'Status: ' + (window.FSM.MapScreener.jumpmod_v2 === 0.528 ? '✓ CORRECT' : '✗ WRONG');
                 document.body.appendChild(debugDiv);
 
                 // Auto-remove after 10 seconds
