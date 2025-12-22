@@ -25,7 +25,7 @@ var PixelDrawr;
             this.noRefill = settings.noRefill;
             this.spriteCacheCutoff = settings.spriteCacheCutoff || 0;
             this.groupNames = settings.groupNames;
-            this.framerateSkip = settings.framerateSkip || 1;
+            this.framerateSkip = settings.framerateSkip || 2;
             this.framesDrawn = 0;
             this.epsilon = settings.epsilon || .007;
             this.keyWidth = settings.keyWidth || "width";

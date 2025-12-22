@@ -235,7 +235,7 @@ FullScreenMario.FullScreenMario.settings.ui = {
                     "title": "Framerate",
                     "type": "Select",
                     "options": function (GameStarter) {
-                        return ["60fps", "30fps"];
+                        return ["30fps", "60fps"];
                     },
                     "source": function (GameStarter) {
                         return (1 / GameStarter.PixelDrawer.getFramerateSkip() * 60) + "fps";
