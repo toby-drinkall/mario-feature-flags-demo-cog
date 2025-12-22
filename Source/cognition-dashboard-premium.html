@@ -1184,7 +1184,7 @@
                             }, 2000);
                         } else if (type === 'recover-flag') {
                             // Call real Devin API to recover feature flag by reversing replacement
-                            const replacedByName = feature.replacedBy || 'jumpmod_v2'; // Get replacement name from feature
+                            const replacedByName = feature.replacedBy || 'new_version'; // Get replacement name from feature
                             const result = await window.DevinAPI.recoverFeatureFlagWithReplacement(
                                 feature,
                                 replacedByName,
