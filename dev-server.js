@@ -125,7 +125,7 @@ app.listen(PORT, () => {
     console.log(`\n  Mario Feature Flag Dashboard`);
     console.log(`  ============================`);
     console.log(`  Server running at http://localhost:${PORT}`);
-    console.log(`  Dashboard: http://localhost:${PORT}/cognition-dashboard-premium.html`);
+    console.log(`  Dashboard: http://localhost:${PORT}/dashboard.html`);
     console.log(`  Game: http://localhost:${PORT}/index.html`);
     console.log(`\n  Devin API proxy available at /api/devin/*`);
     console.log(`  Git auto-pull enabled for PR merges`);
