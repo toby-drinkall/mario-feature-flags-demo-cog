@@ -131,14 +131,25 @@ This is code deletion, NEW code creation, AND multi-file dependency management -
 
 ## 🔄 Caching Bug & Solution (30 seconds)
 
-"I ran into a Chrome/Safari caching bug where the browser aggressively cached API responses. After merging PRs on GitHub, the dashboard still showed 'Pending' states because it served stale cached data.
+"I ran into a Chrome/Safari caching bug where the browser aggressively cached API responses and JavaScript files. After merging PRs on GitHub, the dashboard still showed 'Pending' states because it served stale cached data.
 
-**How we solved it:**
-1. **Cache-Busting Headers** - Force browser to fetch fresh content on every page load (Cache-Control: no-cache, no-store, must-revalidate)
-2. **GitHub Sync Button** - Directly polls GitHub API, bypasses browser cache entirely
-3. **Auto-Sync on Load** - Runs GitHub sync when dashboard loads to ensure localStorage matches GitHub
+**Multi-Layered Solution:**
 
-This guarantees the dashboard always reflects the true PR state."
+1. **Client-Side Meta Tags** - HTML headers tell browser: never cache this page
+   ```
+   Cache-Control: no-cache, no-store, must-revalidate
+   ```
+
+2. **Server-Side Middleware** - Express.js intercepts ALL .js and .html requests, adds no-cache headers before serving files
+   - Even if browser ignores meta tags, server forces fresh content
+
+3. **GitHub Sync Button** - Directly polls GitHub API, completely bypasses browser cache
+
+4. **Auto-Sync on Load** - React useEffect runs GitHub sync immediately when dashboard loads
+
+5. **Git Auto-Pull** - After PR merge, dashboard triggers server endpoint that runs `git pull` to fetch latest code
+
+This guarantees the dashboard always reflects true PR state and serves fresh code."
 
 ---
 
