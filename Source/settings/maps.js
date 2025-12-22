@@ -9,7 +9,7 @@ FullScreenMario.FullScreenMario.settings.maps = {
         "time",
         "underwater",
         "floor",
-        "jumpmod_v2",
+        "jumpmod",
         "maxyvel",
         "maxyvelinv",
         "notime",
