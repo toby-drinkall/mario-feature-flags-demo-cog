@@ -301,22 +301,29 @@ Task Steps (send a message after EACH):
    Send message: "Step 1 complete: Found ${oldFlagName} in ${feature.filesAffected.length} files. Analyzed requirements."
 
 2. Create Backups
-   - Backup all ${feature.filesAffected.length} affected files before making changes
+   - Backup all ${feature.filesAffected.length} affected files BEFORE making ANY changes
+   - Store complete original state of ${oldFlagName} = ${feature.currentValue || 'unknown'}
+   - This backup will be used to RESTORE ${oldFlagName} if user clicks "Restore" later
    Send message: "Step 2 complete: Created backups at [backup-directory]"
 
-3. Remove Dead Code
-   - If there are any if/else branches for the old flag, clean them up
-   - Keep only the active code path
-   Send message: "Step 3 complete: Removed dead code branches"
+3. Remove Old Constant Completely
+   - REMOVE ${oldFlagName} definition from ${feature.file}
+   - REMOVE all ${feature.filesAffected.length} references to ${oldFlagName} from the codebase
+   - This allows ${oldFlagName} to appear in "Removed Feature Flags" after merge
+   - User can later click "Restore" to recover ${oldFlagName} = ${feature.currentValue || 'unknown'}
+   Send message: "Step 3 complete: Completely removed ${oldFlagName} from codebase"
 
-4. Rename Constant
-   - Replace all references of ${oldFlagName} → ${newFlagName} across all affected files
-   Send message: "Step 4 complete: Renamed ${oldFlagName} → ${newFlagName} across ${feature.filesAffected.length} files"
+4. Add New Constant
+   - ADD ${newFlagName} definition to ${feature.file}
+   - Calculate new value to implement: "${instruction}"
+   - This is a NEW constant, not a rename
+   Send message: "Step 4 complete: Added ${newFlagName} with new value"
 
-5. Update Constant Value
-   - Implement the change: "${instruction}"
-   - Update the value in ${feature.file}
-   Send message: "Step 5 complete: Updated constant value to implement: ${instruction}"
+5. Update All Code References
+   - Update all code that previously used ${oldFlagName} to now use ${newFlagName}
+   - Across all ${feature.filesAffected.length} files
+   - Game now uses ${newFlagName} implementing: "${instruction}"
+   Send message: "Step 5 complete: Updated ${feature.filesAffected.length} files to use ${newFlagName}"
 
 6. Run Tests
    - Lint all modified files
@@ -329,13 +336,13 @@ Task Steps (send a message after EACH):
    - Commit all ${feature.filesAffected.length} files atomically with message: "Replace ${oldFlagName} with ${newFlagName} (${instruction})"
    - Create PR with title: "Replace ${oldFlagName} with ${newFlagName}"
    - PR description should include:
-     * Summary of changes (rename + value change)
+     * ${oldFlagName} = ${feature.currentValue || 'unknown'} → REMOVED (can be restored later)
+     * ${newFlagName} → ADDED implementing: ${instruction}
      * Files modified (${feature.filesAffected.length} files)
-     * Implementation: ${instruction}
    Send message: "Step 7 complete: Created PR #[number] at [url]"
 
 8. Finalize
-   Send message: "Step 8 complete: All steps complete. ${newFlagName} is ready for merge."
+   Send message: "Step 8 complete: All steps complete. ${oldFlagName} will move to 'Removed Feature Flags' after merge. ${newFlagName} will be active."
 
 STRUCTURED OUTPUT (fill this in your final response):
 {

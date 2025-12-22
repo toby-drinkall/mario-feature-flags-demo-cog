@@ -567,9 +567,9 @@
         const replacementSteps = [
             { id: 'analyze', label: 'Analyzing codebase', duration: 1000 },
             { id: 'backup', label: 'Creating backups', duration: 800 },
-            { id: 'remove_dead_code', label: 'Removing dead code', duration: 1200 },
-            { id: 'rename', label: 'Renaming constant', duration: 2000 },
-            { id: 'update_value', label: 'Updating constant value', duration: 1000 },
+            { id: 'remove_old_constant', label: 'Removing old constant completely', duration: 1500 },
+            { id: 'add_new_constant', label: 'Adding new constant', duration: 1200 },
+            { id: 'update_references', label: 'Updating code references', duration: 2000 },
             { id: 'test', label: 'Running tests', duration: 3500 },
             { id: 'pr', label: 'Creating atomic PR', duration: 1500 },
             { id: 'complete', label: 'Finalizing automation', duration: 800 }
