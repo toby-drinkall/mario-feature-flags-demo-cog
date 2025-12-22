@@ -447,11 +447,10 @@ This is the built-in, fully functional feature flag system!
 9. **Parallax Clouds** - Clouds scroll at 70% speed
 10. **Low Gravity** - Reduced gravity
 11. **Luigi** - Play as Luigi instead of Mario
-12. **Tilt Gravity** - Device tilt affects all characters
-13. **Palette Swap** - Random color palettes
-14. **QCount** - Spawn enemies on Q key
-15. **Super Fireballs** - Fireballs destroy blocks
-16. **Trip of Acid** - Screen trails effect
+12. **Palette Swap** - Random color palettes
+13. **QCount** - Spawn enemies on Q key
+14. **Super Fireballs** - Fireballs destroy blocks
+15. **Trip of Acid** - Screen trails effect
 
 ### How Mods Work
 

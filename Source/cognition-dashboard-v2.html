@@ -1,1744 +1,212 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Feature Management Dashboard</title>
+    <title>Cognition Demo Dashboard</title>
+
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React and ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
-    <script src="devin-api-config.js?v=1734817200"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
+        /* Custom shadcn-inspired styles */
         * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Dark mode */
-        .dark body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #fafafa;
+            color: #0a0a0a;
+        }
+
+        /* Toggle Switch Component (shadcn style) */
+        .toggle-root {
             position: relative;
-        }
-
-        .dark body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(74, 86, 226, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-        }
-
-        .dark body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Light mode - Crisp and clean with strong contrast */
-        .light body {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #f1f3f5 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            position: relative;
-        }
-
-        .light body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .light body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Ensure content is above background patterns */
-        #root {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Dark mode cards */
-        .dark .glass-card {
-            background: rgba(26, 26, 46, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-
-        .dark .glass-card:hover {
-            background: rgba(26, 26, 46, 0.7);
-            border-color: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Light mode cards */
-        .light .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            box-shadow:
-                0 2px 8px rgba(0, 0, 0, 0.1),
-                0 1px 3px rgba(0, 0, 0, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        }
-
-        .light .glass-card:hover {
-            background: rgba(255, 255, 255, 1);
-            border-color: rgba(0, 0, 0, 0.16);
-            transform: translateY(-2px);
-            box-shadow:
-                0 4px 16px rgba(0, 0, 0, 0.12),
-                0 2px 6px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .badge-glow {
-            box-shadow: 0 0 20px currentColor;
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Status badges - Light mode improvements */
-        .light .bg-emerald-500\/20 {
-            background: rgba(16, 185, 129, 0.15) !important;
-            border-color: rgba(16, 185, 129, 0.3) !important;
-        }
-        .light .text-emerald-400 {
-            color: #10b981 !important;
-            font-weight: 600;
-        }
-        .light .bg-emerald-400 {
-            background: #10b981 !important;
-        }
-
-        .light .bg-amber-500\/20 {
-            background: rgba(245, 158, 11, 0.15) !important;
-            border-color: rgba(245, 158, 11, 0.3) !important;
-        }
-        .light .text-amber-400 {
-            color: #f59e0b !important;
-            font-weight: 600;
-        }
-        .light .bg-amber-400 {
-            background: #f59e0b !important;
-        }
-
-        .light .bg-blue-500\/20 {
-            background: rgba(59, 130, 246, 0.15) !important;
-            border-color: rgba(59, 130, 246, 0.3) !important;
-        }
-        .light .text-blue-400 {
-            color: #3b82f6 !important;
-            font-weight: 600;
-        }
-
-        .light .bg-gray-500\/20 {
-            background: rgba(100, 116, 139, 0.12) !important;
-            border-color: rgba(100, 116, 139, 0.25) !important;
-        }
-        .light .text-gray-400 {
-            color: #64748b !important;
-            font-weight: 600;
-        }
-
-        /* Primary gradient buttons - Enhanced for light mode */
-        .light .bg-gradient-to-r.from-blue-500 {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3),
-                        0 2px 6px rgba(139, 92, 246, 0.2);
-        }
-
-        .light .bg-gradient-to-r.from-blue-500:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35),
-                        0 3px 8px rgba(124, 58, 237, 0.25);
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Custom scrollbar - Dark mode */
-        .dark ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .dark ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .dark ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-
-        .dark ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Custom scrollbar - Light mode */
-        .light ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .light ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .light ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-        }
-
-        .light ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        /* Tab styles - Simple border-bottom design */
-        .tab-container {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .light .tab-container {
-            border-bottom-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .dark .tab-button {
-            position: relative;
-            padding: 1rem 0;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.5);
-            transition: all 0.2s ease;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-
-        .dark .tab-button:hover {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .dark .tab-button.active {
-            color: #60a5fa;
-            border-bottom-color: #60a5fa;
-            font-weight: 600;
-        }
-
-        .light .tab-button {
-            position: relative;
-            padding: 1rem 0;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: rgba(15, 23, 42, 0.5);
-            transition: all 0.2s ease;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-
-        .light .tab-button:hover {
-            color: rgba(15, 23, 42, 0.9);
-        }
-
-        .light .tab-button.active {
-            color: #2563eb;
-            border-bottom-color: #2563eb;
-            font-weight: 600;
-        }
-
-        /* Text colors */
-        .dark .text-primary { color: #fff; }
-        .dark .text-secondary { color: rgba(255, 255, 255, 0.7); }
-        .dark .text-tertiary { color: rgba(255, 255, 255, 0.5); }
-
-        .light .text-primary { color: #0f172a; }
-        .light .text-secondary { color: #475569; }
-        .light .text-tertiary { color: #94a3b8; }
-
-        /* Toggle switch - Dark mode */
-        .dark .toggle-track {
             width: 44px;
             height: 24px;
-            background: rgba(255, 255, 255, 0.1);
+            background: #e5e7eb;
             border-radius: 12px;
-            position: relative;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
+            transition: background-color 0.2s;
+            border: 2px solid transparent;
         }
 
-        .dark .toggle-track.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: transparent;
-            box-shadow: 0 0 12px rgba(102, 126, 234, 0.4);
+        .toggle-root:hover {
+            background: #d1d5db;
         }
 
-        /* Toggle switch - Light mode */
-        .light .toggle-track {
-            width: 44px;
-            height: 24px;
-            background: #e2e8f0;
-            border-radius: 12px;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid #cbd5e1;
-            display: flex;
-            align-items: center;
+        .toggle-root.active {
+            background: #2563eb;
         }
 
-        .light .toggle-track.active {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border-color: transparent;
-            box-shadow: 0 0 16px rgba(79, 70, 229, 0.4),
-                        0 2px 8px rgba(79, 70, 229, 0.25);
+        .toggle-root.active:hover {
+            background: #1d4ed8;
         }
 
         .toggle-thumb {
             position: absolute;
+            top: 2px;
             left: 2px;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             background: white;
             border-radius: 50%;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: left 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .toggle-track.active .toggle-thumb {
+        .toggle-root.active .toggle-thumb {
             left: 22px;
         }
 
-        /* Category colors - Dark mode */
-        .dark .category-movement { color: #c084fc; }
-        .dark .category-visual { color: #22d3ee; }
-        .dark .category-gameplay { color: #fb923c; }
-        .dark .category-character { color: #f472b6; }
-
-        /* Category colors - Light mode (vibrant neon) */
-        .light .category-movement { color: #a855f7; font-weight: 600; }
-        .light .category-visual { color: #06b6d4; font-weight: 600; }
-        .light .category-gameplay { color: #f97316; font-weight: 600; }
-        .light .category-character { color: #ec4899; font-weight: 600; }
-
-        /* Button colors - Light mode adjustments */
-        .light .btn-remove {
-            color: #ef4444;
-            font-weight: 600;
-        }
-        .light .btn-remove:hover {
-            color: #dc2626;
-            background: rgba(239, 68, 68, 0.12);
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        /* Card shadow */
+        .card-shadow {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
         }
 
-        .light .btn-recover {
-            color: #3b82f6;
-            font-weight: 600;
-        }
-        .light .btn-recover:hover {
-            color: #2563eb;
-            background: rgba(59, 130, 246, 0.12);
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
-        }
-
-        /* Stats number colors - make blue and red more vibrant in light mode */
-        .light .stat-blue { color: #3b82f6; }
-        .light .stat-red { color: #ef4444; }
-
-        /* Enable button - styled like Remove but blue */
-        .dark .btn-enable {
-            color: #60a5fa;
-        }
-        .dark .btn-enable:hover {
-            color: #93c5fd;
-            background: rgba(96, 165, 250, 0.1);
+        /* Status badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
         }
 
-        .light .btn-enable {
-            color: #2563eb;
-        }
-        .light .btn-enable:hover {
-            color: #1d4ed8;
-            background: rgba(37, 99, 235, 0.1);
+        .status-connected {
+            background: #dcfce7;
+            color: #166534;
         }
 
-        /* Disable button - neon orange */
-        .dark .btn-disable {
-            color: #fb923c;
-        }
-        .dark .btn-disable:hover {
-            color: #fdba74;
-            background: rgba(251, 146, 60, 0.1);
+        .status-disconnected {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        .light .btn-disable {
-            color: #ea580c;
-        }
-        .light .btn-disable:hover {
-            color: #c2410c;
-            background: rgba(234, 88, 12, 0.1);
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        /* Permanent enable button - neon green */
-        .dark .btn-permanent-enable {
-            color: #10b981;
-        }
-        .dark .btn-permanent-enable:hover {
-            color: #34d399;
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .light .btn-permanent-enable {
-            color: #059669;
-            font-weight: 600;
-        }
-        .light .btn-permanent-enable:hover {
-            color: #047857;
-            background: rgba(5, 150, 105, 0.1);
-        }
-
-        /* Mario Bros title */
-        .mario-title {
-            font-family: 'Press Start 2P', 'Press Start', cursive, monospace;
-            font-size: 28px;
-            font-weight: bold;
-            color: #ff0000;
-            text-shadow:
-                3px 3px 0 #8b0000,
-                4px 4px 0 #000,
-                -1px -1px 0 #ff6b6b,
-                1px 1px 0 #ff6b6b;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-        }
-
-        .dark .mario-title {
-            color: #ff0000;
-        }
-
-        .light .mario-title {
-            color: #dc2626;
-            text-shadow:
-                2px 2px 0 #7f1d1d,
-                3px 3px 0 #000,
-                -1px -1px 0 #fca5a5,
-                1px 1px 0 #fca5a5;
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     </style>
 </head>
 <body>
-    <script>
-        // FORCE CORRECT STATE ON LOAD - Synced with GitHub (PR #33 MERGED!)
-        console.log('🔄 Loading correct state from GitHub...');
-        localStorage.clear();
-
-        // 3 features removed (no recovery yet)
-        const removed = [
-            { name: 'Tilt Gravity', prNumber: 13, removedAt: Date.now() - 86400000, lines: 42, category: 'movement', file: 'Source/settings/mods.js', lineStart: 509, lineEnd: 550 },
-            { name: 'Hard Mode', prNumber: 26, removedAt: Date.now() - 43200000, lines: 92, category: 'gameplay', file: 'Source/settings/mods.js', lineStart: 273, lineEnd: 364 },
-            { name: 'Super Fireballs', prNumber: 27, removedAt: Date.now() - 21600000, lines: 17, category: 'gameplay', file: 'Source/settings/mods.js', lineStart: 366, lineEnd: 382 }
-        ];
-
-        localStorage.setItem('removed_features', JSON.stringify(removed));
-        localStorage.setItem('pending_restoration', JSON.stringify([])); // PR #33 merged!
-        localStorage.setItem('pending_removal', JSON.stringify([]));
-        localStorage.setItem('enabled_features', JSON.stringify([]));
-
-        console.log('✅ Correct state loaded:');
-        console.log('  - 12 Active features');
-        console.log('  - 4 Removed (Tilt Gravity, Hard Mode, Super Fireballs, Trip of Acid)');
-        console.log('  - 0 Pending operations');
-        console.log('  TOTAL: 16 features');
-    </script>
-
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-        const { motion, AnimatePresence } = window.framerMotion || {};
 
-        // Lucide icons setup
-        lucide.createIcons();
-
-        // Theme management
-        const useTheme = () => {
-            const [isDark, setIsDark] = useState(() => {
-                const saved = localStorage.getItem('theme');
-                return saved ? saved === 'dark' : false;
-            });
-
-            useEffect(() => {
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                document.documentElement.classList.toggle('dark', isDark);
-                document.documentElement.classList.toggle('light', !isDark);
-            }, [isDark]);
-
-            return [isDark, setIsDark];
-        };
-
-        // Feature data
-        // NOTE: This list is synchronized with Source/settings/mods.js
-        // Only features that currently exist in the codebase should be listed here
-        const modsData = [
-            { name: "Bouncy Bounce", description: "Mario landing causes him to jump.", file: "Source/settings/mods.js", lineStart: 5, lineEnd: 35, lines: 31, category: "movement" },
-            { name: "Dark is the Night", description: "Dark theme visual.", file: "Source/settings/mods.js", lineStart: 37, lineEnd: 82, lines: 46, category: "visual" },
-            { name: "Earthquake!", description: "Mario landing causes everything to jump.", file: "Source/settings/mods.js", lineStart: 84, lineEnd: 158, lines: 75, category: "movement" },
-            { name: "Gradient Skies", description: "Smooth gradient backgrounds.", file: "Source/settings/mods.js", lineStart: 160, lineEnd: 245, lines: 86, category: "visual" },
-            { name: "High Speed", description: "Mario runs 14x faster.", file: "Source/settings/mods.js", lineStart: 340, lineEnd: 372, lines: 33, category: "movement" },
-            { name: "Infinite Lives", description: "Lives never decrease.", file: "Source/settings/mods.js", lineStart: 374, lineEnd: 410, lines: 37, category: "gameplay" },
-            { name: "Invincibility", description: "Permanent star power.", file: "Source/settings/mods.js", lineStart: 412, lineEnd: 440, lines: 29, category: "gameplay" },
-            { name: "Parallax Clouds", description: "Clouds scroll at 70% speed.", file: "Source/settings/mods.js", lineStart: 442, lineEnd: 456, lines: 15, category: "visual" },
-            { name: "Low Gravity", description: "Reduced gravity.", file: "Source/settings/mods.js", lineStart: 458, lineEnd: 474, lines: 17, category: "movement" },
-            { name: "Luigi", description: "Play as Luigi.", file: "Source/settings/mods.js", lineStart: 476, lineEnd: 507, lines: 32, category: "character" },
-            { name: "Palette Swap", description: "Random color palettes.", file: "Source/settings/mods.js", lineStart: 552, lineEnd: 616, lines: 65, category: "visual" },
-            { name: "QCount", description: "Press Q to spawn enemies.", file: "Source/settings/mods.js", lineStart: 618, lineEnd: 689, lines: 72, category: "gameplay" }
+        // Mod definitions
+        const modsList = [
+            { name: "Bouncy Bounce", description: "Mario landing causes him to jump." },
+            { name: "Dark is the Night", description: "Dark theme visual." },
+            { name: "Earthquake!", description: "Mario landing causes everything else to jump." },
+            { name: "Gradient Skies", description: "Smooth gradient backgrounds." },
+            { name: "Hard Mode", description: "Goombas replaced with Beetles, faster enemies." },
+            { name: "High Speed", description: "Mario runs 14x faster." },
+            { name: "Infinite Lives", description: "Mario never loses lives." },
+            { name: "Invincibility", description: "Always star powered." },
+            { name: "Parallax Clouds", description: "Clouds scroll at 70% speed." },
+            { name: "Low Gravity", description: "Reduced gravity." },
+            { name: "Luigi", description: "Play as Luigi." },
+            { name: "Palette Swap", description: "Random color palettes." },
+            { name: "QCount", description: "Press Q to spawn enemies." },
+            { name: "Super Fireballs", description: "Fireballs destroy blocks." },
+            { name: "Trip of Acid", description: "Screen trails effect." }
         ];
 
-        // Feature Flags data - actual features from the codebase
-        const featureFlagsData = [
-            {
-                name: "PHYSICS_JUMPMOD",
-                codeName: "jumpmod", // The actual constant name in the code
-                displayName: "Jump Height Modifier",
-                description: "Controls Mario's jump height (lower = higher jump)",
-                file: "Source/settings/objects.js",
-                lineStart: 230,
-                lineEnd: 230,
-                lines: 1,
-                currentValue: 1.056,
-                category: "physics",
-                filesAffected: [
-                    { file: "Source/settings/objects.js", line: 230, description: "jumpmod constant" },
-                    { file: "Source/settings/math.js", lineStart: 30, lineEnd: 33, description: "jump calculation function" }
-                ],
-                enabled: true // Currently active in game
-            }
-        ];
-
-        const removalSteps = [
-            { id: 'init', label: 'Initializing Devin session', duration: 800 },
-            { id: 'locate', label: 'Locating feature flag', duration: 1500 },
-            { id: 'backup', label: 'Creating backup', duration: 600 },
-            { id: 'remove', label: 'Removing feature flag code', duration: 2000 },
-            { id: 'test', label: 'Running test suite', duration: 3500 },
-            { id: 'branch', label: 'Creating git branch', duration: 800 },
-            { id: 'commit', label: 'Committing changes', duration: 1000 },
-            { id: 'pr', label: 'Creating Pull Request', duration: 1500 },
-            { id: 'complete', label: 'Finalizing automation', duration: 800 }
-        ];
-
-        const recoverySteps = [
-            { id: 'init', label: 'Initializing Devin session', duration: 800, stepNumber: 0 },
-            { id: 'load', label: 'Loading feature backup', duration: 1000, stepNumber: 1 },
-            { id: 'analyze_pr', label: 'Analyzing removal PR', duration: 1200, stepNumber: 2 },
-            { id: 'branch', label: 'Creating recovery branch', duration: 800, stepNumber: 5 },
-            { id: 'restore', label: 'Restoring feature code', duration: 2000, stepNumber: 3 },
-            { id: 'test', label: 'Running test suite', duration: 3000, stepNumber: 4 },
-            { id: 'commit', label: 'Committing changes', duration: 1000, stepNumber: 6 },
-            { id: 'pr', label: 'Creating Pull Request', duration: 1500, stepNumber: 7 },
-            { id: 'complete', label: 'Finalizing automation', duration: 800, stepNumber: 8 }
-        ];
-
-        const replacementSteps = [
-            { id: 'analyze', label: 'Analyzing codebase', duration: 1000 },
-            { id: 'backup', label: 'Creating backups', duration: 800 },
-            { id: 'remove_dead_code', label: 'Removing dead code', duration: 1200 },
-            { id: 'rename', label: 'Renaming constant', duration: 2000 },
-            { id: 'update_value', label: 'Updating constant value', duration: 1000 },
-            { id: 'test', label: 'Running tests', duration: 3500 },
-            { id: 'pr', label: 'Creating atomic PR', duration: 1500 },
-            { id: 'complete', label: 'Finalizing automation', duration: 800 }
-        ];
-
-        const enableSteps = [
-            { id: 'init', label: 'Initializing Devin session', duration: 800 },
-            { id: 'analyze', label: 'Analyzing feature structure', duration: 1500 },
-            { id: 'backup', label: 'Creating feature backup', duration: 600 },
-            { id: 'enable', label: 'Adding feature to game UI', duration: 2000 },
-            { id: 'test', label: 'Running test suite', duration: 3500 },
-            { id: 'branch', label: 'Creating git branch', duration: 800 },
-            { id: 'commit', label: 'Committing changes', duration: 1000 },
-            { id: 'pr', label: 'Creating Pull Request', duration: 1500 }
-        ];
-
-        const returnToStagingSteps = [
-            { id: 'init', label: 'Initializing Devin session', duration: 800 },
-            { id: 'load', label: 'Loading feature backup', duration: 1000 },
-            { id: 'analyze_pr', label: 'Analyzing enable PR', duration: 1200 },
-            { id: 'restore', label: 'Restoring to staging state', duration: 2000 },
-            { id: 'test', label: 'Running test suite', duration: 3000 },
-            { id: 'branch', label: 'Creating restore branch', duration: 800 },
-            { id: 'pr', label: 'Creating Pull Request', duration: 1500 }
-        ];
-
-        let prCounter = parseInt(localStorage.getItem('pr_counter') || '122');
-        function getNextPR() {
-            prCounter++;
-            localStorage.setItem('pr_counter', prCounter.toString());
-            return prCounter;
-        }
-
-        function isDevinAPIConfigured() {
-            const configured = window.DevinAPI &&
-                   window.DevinAPI.config.apiUrl !== 'YOUR_DEVIN_API_URL' &&
-                   window.DevinAPI.config.apiKey !== 'YOUR_API_KEY';
-            return configured;
-        }
-
-        // Components
-        function StatusBadge({ connected, devinIntegrated }) {
+        // Toggle Component
+        function Toggle({ enabled, onChange }) {
             return (
-                <div className="flex items-center gap-3">
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
-                        connected
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                    }`}>
-                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 badge-glow' : 'bg-amber-400 animate-pulse'}`} />
-                        {connected ? 'Game Connected' : 'Waiting for Connection'}
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
-                        devinIntegrated
-                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                            : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                    }`}>
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/>
-                        </svg>
-                        {devinIntegrated ? 'Devin API Ready' : 'Simulation Mode'}
-                    </div>
+                <div
+                    className={`toggle-root ${enabled ? 'active' : ''}`}
+                    onClick={onChange}
+                    role="switch"
+                    aria-checked={enabled}
+                >
+                    <div className="toggle-thumb"></div>
                 </div>
             );
         }
 
-        function FeatureCard({ feature, enabled, onToggle, onEnable, onRemove, connected }) {
-            const categoryColors = {
-                movement: 'category-movement',
-                visual: 'category-visual',
-                gameplay: 'category-gameplay',
-                character: 'category-character'
-            };
-
+        // Feature Card Component
+        function FeatureCard({ mod, enabled, onToggle, connected }) {
             return (
-                <div className="glass-card rounded-2xl p-4 flex items-center justify-between group">
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-semibold text-primary truncate">{feature.name}</h3>
-                            <span className={`text-[10px] uppercase tracking-wider ${categoryColors[feature.category]} opacity-70`}>
-                                {feature.category}
-                            </span>
-                        </div>
-                        <p className="text-xs text-secondary truncate">{feature.description}</p>
-                        <div className="text-[10px] text-tertiary mt-1">{feature.lines} lines</div>
+                <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between hover:border-gray-300 transition-colors card-shadow">
+                    <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-900">{mod.name}</h3>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                        <div
-                            className={`toggle-track ${enabled ? 'active' : ''}`}
-                            onClick={() => connected && onToggle(feature.name)}
-                        >
-                            <div className="toggle-thumb" />
-                        </div>
-                        <button
-                            onClick={() => onRemove(feature)}
-                            className="px-3 py-1.5 text-xs font-medium btn-remove text-red-400 hover:text-red-300 hover:bg-red-500/10 dark:text-red-400 dark:hover:text-red-300 rounded-lg transition-all"
-                        >
-                            Remove
-                        </button>
-                    </div>
+                    <Toggle enabled={enabled} onChange={() => connected && onToggle(mod.name)} />
                 </div>
             );
         }
 
-        function RemovedFeatureCard({ feature, onRecover }) {
-            return (
-                <div className="glass-card rounded-2xl p-4">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-primary mb-1">{feature.name}</h3>
-                            <p className="text-xs text-tertiary mb-2">
-                                Removed {Math.floor((Date.now() - feature.removedAt) / 60000)} min ago
-                            </p>
-                            <div className="flex items-center gap-4 text-xs text-tertiary">
-                                <span>PR #{feature.prNumber}</span>
-                                <span>•</span>
-                                <span>{feature.lines} lines</span>
-                                <span>•</span>
-                                <span className="text-emerald-400">Tests passing</span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => onRecover(feature)}
-                            className="px-3 py-1.5 text-xs font-medium btn-recover text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-all"
-                        >
-                            Restore
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        function EnabledFeatureCard({ feature, onReturnToStaging }) {
-            return (
-                <div className="glass-card rounded-2xl p-4">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-primary mb-1">{feature.name}</h3>
-                            <p className="text-xs text-tertiary mb-2">
-                                Enabled {Math.floor((Date.now() - feature.enabledAt) / 60000)} min ago
-                            </p>
-                            <div className="flex items-center gap-4 text-xs text-tertiary">
-                                <span>PR #{feature.prNumber}</span>
-                                <span>•</span>
-                                <span>{feature.lines} lines</span>
-                                <span>•</span>
-                                <span className="text-emerald-400">Tests passing</span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => onReturnToStaging(feature)}
-                            className="px-3 py-1.5 text-xs font-medium btn-recover text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-all"
-                        >
-                            Return to Staging
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        function FeatureFlagCard({ feature, onReplace }) {
-            const categoryColors = {
-                physics: 'text-purple-400',
-                movement: 'text-purple-400',
-                visual: 'text-cyan-400',
-                gameplay: 'text-orange-400',
-                character: 'text-pink-400'
-            };
-
-            // Count total lines across all affected files
-            const totalLines = feature.filesAffected.reduce((sum, f) => sum + (f.lines || 0), 0);
-
-            return (
-                <div className="glass-card rounded-2xl p-4 flex items-center justify-between group">
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-semibold text-primary truncate">{feature.displayName || feature.name}</h3>
-                            <span className={`text-[10px] uppercase tracking-wider ${categoryColors[feature.category]} opacity-70`}>
-                                {feature.category}
-                            </span>
-                        </div>
-                        <p className="text-xs text-secondary truncate">{feature.description}</p>
-                        <div className="flex items-center gap-3 mt-1 text-[10px] text-tertiary">
-                            <span>{totalLines} lines</span>
-                            <span>•</span>
-                            <span>{feature.filesAffected.length} files</span>
-                            {feature.currentValue && (
-                                <>
-                                    <span>•</span>
-                                    <span className="text-blue-400">Current: {feature.currentValue}</span>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                        <button
-                            onClick={() => onReplace(feature)}
-                            className="px-3 py-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-all"
-                        >
-                            Replace
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        function RemovedFeatureFlagCard({ feature, onRecover }) {
-            return (
-                <div className="glass-card rounded-2xl p-4 opacity-60 hover:opacity-100 transition">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-primary mb-1">{feature.displayName || feature.name}</h3>
-                            <p className="text-xs text-tertiary mb-2">
-                                Removed {Math.floor((Date.now() - feature.removedAt) / 60000)}m ago
-                            </p>
-                            <div className="flex items-center gap-3 text-xs text-tertiary">
-                                <span>PR #{feature.prNumber}</span>
-                                <span>•</span>
-                                <span>{feature.filesAffected?.length || 0} files</span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => onRecover(feature)}
-                            className="px-3 py-1.5 text-xs font-medium btn-recover text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-all"
-                        >
-                            Restore
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        function AutomationModal({ feature, type, onComplete, onCancel }) {
-            const [currentStep, setCurrentStep] = useState(-1);
-            const [sessionId, setSessionId] = useState(null);
-            const [sessionUrl, setSessionUrl] = useState(null);
-            const [subDetails, setSubDetails] = useState({});
-            const [prNumber, setPrNumber] = useState(null);
-            const [prUrl, setPrUrl] = useState(null);
-            const [error, setError] = useState(null);
-            const [useRealAPI, setUseRealAPI] = useState(false);
-            const [isStopped, setIsStopped] = useState(false);
-            const [pauseSuccess, setPauseSuccess] = useState(false);
-            const [pauseMessage, setPauseMessage] = useState('');
-            const [currentThinking, setCurrentThinking] = useState('');
-            const [devinStatus, setDevinStatus] = useState('');
-            const [startTime, setStartTime] = useState(null);
-            const [cancelledAtStep, setCancelledAtStep] = useState(null);
-
-            // Replacement modal state
-            const [oldFlagName, setOldFlagName] = useState(feature.codeName || feature.name || '');
-            const [newFlagName, setNewFlagName] = useState('');
-            const [instruction, setInstruction] = useState('');
-
-            const steps = type === 'remove' ? removalSteps :
-                         type === 'enable' ? enableSteps :
-                         type === 'return-to-staging' ? returnToStagingSteps :
-                         type === 'replace-flag' ? replacementSteps :
-                         recoverySteps;
-
-            useEffect(() => {
-                if (currentStep === -1 || isStopped) return;
-
-                const step = steps[currentStep];
-
-                if (useRealAPI) {
-                    // Real Devin API integration - handled in startAutomation
-                    // This useEffect just manages the step progression display
-                } else {
-                    // Simulation mode
-                    const timer = setTimeout(() => {
-                        if (isStopped) return;
-                        if (currentStep < steps.length - 1) {
-                            setCurrentStep(currentStep + 1);
-                        } else {
-                            setTimeout(() => onComplete(prNumber), 500);
-                        }
-                    }, step.duration);
-
-                    setTimeout(() => {
-                        if (isStopped) return;
-                        if (step.id === 'init') {
-                            setSubDetails(prev => ({ ...prev, [step.id]: [`Session ID: ${sessionId}`] }));
-                        } else if (step.id === 'analyze') {
-                            setSubDetails(prev => ({ ...prev, [step.id]: [
-                                'Found 1 feature flag definition',
-                                `Located in: ${feature.file}:${feature.lineStart}-${feature.lineEnd}`
-                            ]}));
-                        } else if (step.id === 'backup') {
-                            const backupId = `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}`;
-                            setSubDetails(prev => ({ ...prev, [step.id]: [
-                                `Backup: ${backupId}.json`,
-                                `Size: ${(feature.lines * 0.08).toFixed(1)} KB (${feature.lines} lines)`
-                            ]}));
-                        } else if (step.id === 'test') {
-                            setTimeout(() => {
-                                if (!isStopped) {
-                                    setSubDetails(prev => ({ ...prev, [step.id]: ['All 47 tests passing'] }));
-                                }
-                            }, 2500);
-                        } else if (step.id === 'pr') {
-                            setSubDetails(prev => ({ ...prev, [step.id]: [`PR #${prNumber}`] }));
-                        }
-                    }, step.duration / 3);
-
-                    return () => clearTimeout(timer);
-                }
-            }, [currentStep, useRealAPI, isStopped]);
-
-            const startAutomation = async () => {
-                const configured = isDevinAPIConfigured();
-                setUseRealAPI(configured);
-
-                if (configured) {
-                    // Real Devin API call with live progress tracking
-                    try {
-                        setStartTime(Date.now());
-                        setCurrentStep(0); // Immediately show step 0 spinning
-
-                        // After 4 seconds, advance to step 1 (step 0 gets green tick)
-                        setTimeout(() => {
-                            if (!isStopped) {
-                                setCurrentStep(prev => Math.max(prev, 1));
-                            }
-                        }, 4000);
-
-                        // Progress callback - gets called with real Devin status every 3 seconds
-                        const onProgress = (status) => {
-                            console.log('📊 Devin progress update:', status);
-
-                            // Immediately capture session URL when session is created
-                            if (status.session_created && status.url) {
-                                console.log('✓✓✓ SESSION CREATED! ✓✓✓');
-                                console.log('   Session ID:', status.session_id);
-                                console.log('   Session URL:', status.url);
-                                console.log('   Calling setSessionUrl()...');
-                                setSessionUrl(status.url);
-                                console.log('   Calling setSessionId()...');
-                                setSessionId(status.session_id);
-                                console.log('   ✓ State updated - button should turn BLUE now');
-                            } else if (status.session_created) {
-                                console.warn('⚠️  Session created but no URL:', status);
-                            } else if (status.url) {
-                                // URL available in regular status update
-                                console.log('📌 URL found in status update:', status.url);
-                                if (!sessionUrl) {
-                                    console.log('   Setting session URL from status...');
-                                    setSessionUrl(status.url);
-                                    setSessionId(status.session_id || sessionId);
-                                }
-                            }
-
-                            // Update status badge
-                            const currentStatus = status.status_enum || status.status || 'working';
-                            setDevinStatus(currentStatus);
-
-                            // Check for PR URL
-                            if (status.pull_request && status.pull_request.url) {
-                                setPrUrl(status.pull_request.url);
-                                const prMatch = status.pull_request.url.match(/\/pull\/(\d+)/);
-                                if (prMatch) {
-                                    setPrNumber(parseInt(prMatch[1]));
-                                }
-                            }
-
-                            // Get PR from structured_output
-                            if (status.structured_output && status.structured_output.pr_number) {
-                                setPrNumber(status.structured_output.pr_number);
-                            }
-
-                            // Parse Devin messages to track completion
-                            const messages = status.messages || [];
-                            const devinMessages = messages.filter(m => m.type === 'devin_message');
-                            const messageCount = devinMessages.length;
-
-                            console.log(`📊 Processing ${messageCount} messages from Devin`);
-
-                            // Show latest message (truncate before STRUCTURED OUTPUT)
-                            const lastMessage = devinMessages[devinMessages.length - 1];
-                            if (lastMessage) {
-                                let message = lastMessage.message;
-                                // Truncate before "STRUCTURED OUTPUT" or "PR: https://"
-                                const structuredIndex = message.indexOf('STRUCTURED OUTPUT');
-                                if (structuredIndex !== -1) {
-                                    message = message.substring(0, structuredIndex).trim();
-                                }
-                                setCurrentThinking(message);
-                            }
-
-                            // Find which step to show as active (spinning)
-                            // For recovery, steps may complete out of order (Devin does branch before restore)
-                            let nextActiveStep = 1; // Default: after 4s timeout, step 1 is active
-                            const completedSteps = new Set(); // Track which Devin step numbers are complete
-
-                            devinMessages.forEach((message) => {
-                                const fullMsg = message.message;
-                                const msg = fullMsg.toLowerCase();
-
-                                // Extract PR number from any message
-                                const prMatch = fullMsg.match(/PR\s*#(\d+)/i);
-                                if (prMatch) {
-                                    const prNum = parseInt(prMatch[1]);
-                                    setPrNumber(prNum);
-                                    setPrUrl(`https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNum}`);
-                                }
-
-                                // Extract which step number Devin completed
-                                const stepMatch = msg.match(/step (\d+) complete/);
-                                if (stepMatch) {
-                                    const completedStepNum = parseInt(stepMatch[1]);
-                                    completedSteps.add(completedStepNum);
-                                    console.log(`   ✓ Step ${completedStepNum} complete (Devin)`);
-                                }
-                            });
-
-                            // Find the next visual step index to show as active
-                            // Match Devin's step numbers to our visual steps array
-                            for (let i = 0; i < steps.length; i++) {
-                                const step = steps[i];
-                                const devinStepNum = step.stepNumber !== undefined ? step.stepNumber : i;
-
-                                if (!completedSteps.has(devinStepNum)) {
-                                    // This is the first incomplete step - make it active
-                                    nextActiveStep = i + 1;
-                                    console.log(`   📍 Visual step ${i+1} (Devin step ${devinStepNum}) is next`);
-                                    break;
-                                }
-                            }
-
-                            // If all steps are complete, advance to end
-                            if (completedSteps.size === steps.length || completedSteps.has(8)) {
-                                nextActiveStep = steps.length;
-                                console.log(`   ✅ All steps complete!`);
-                            }
-
-                            // If Devin status is "blocked" or "finished", complete all steps
-                            if (currentStatus === 'blocked' || currentStatus === 'finished' || currentStatus === 'completed') {
-                                console.log(`   ✅ Status is ${currentStatus} → completing all steps`);
-                                nextActiveStep = steps.length;
-                            }
-
-                            // Update current active step based on Devin's progress
-                            if (messageCount > 0 || currentStatus === 'blocked' || currentStatus === 'finished' || currentStatus === 'completed') {
-                                console.log(`📍 Step ${nextActiveStep} is now active (spinning)`);
-                                setCurrentStep(prev => Math.max(prev, nextActiveStep));
-                            }
-                        };
-
-                        if (type === 'remove') {
-                            // Call real Devin API with progress tracking
-                            const result = await window.DevinAPI.removeFeatureFlag(feature, onProgress);
-
-                            // Ensure session info is set (important for Stop Automation button)
-                            console.log('✓ Devin API result:', result);
-                            console.log('   Session ID:', result.sessionId);
-                            console.log('   Session URL:', result.url);
-                            setSessionId(result.sessionId);
-                            setSessionUrl(result.url);
-
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`, `URL: ${result.url}`],
-                                backup: [`Backup: ${result.backupPath}`],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
-                            });
-
-                            // Ensure we're at complete state (progress callback should have done this already)
-                            setCurrentStep(prev => Math.max(prev, steps.length));
-
-                            // Auto-close modal after 2 seconds to show completion and move to pending
-                            console.log('⏱️ Automation complete! Closing modal in 2 seconds...');
-                            setTimeout(() => {
-                                console.log('✅ Moving feature to Pending Removal section');
-                                onComplete(result.prNumber);
-                            }, 2000)
-                        } else if (type === 'replace-flag') {
-                            // Call real Devin API with replacement parameters
-                            const result = await window.DevinAPI.replaceFeatureFlag(
-                                oldFlagName,
-                                newFlagName,
-                                instruction,
-                                feature,
-                                onProgress
-                            );
-
-                            // Ensure session info is set (important for Stop Automation button)
-                            console.log('✓ Devin API result:', result);
-                            console.log('   Session ID:', result.sessionId);
-                            console.log('   Session URL:', result.url);
-                            console.log('   Old constant:', result.oldConstant, '=', result.oldValue);
-                            console.log('   New constant:', result.newConstant, '=', result.newValue);
-                            setSessionId(result.sessionId);
-                            setSessionUrl(result.url);
-
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`, `URL: ${result.url}`],
-                                backup: [`Backup directory created`],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`],
-                                replacement: [`${result.oldConstant} → ${result.newConstant}`, `Value: ${result.oldValue} → ${result.newValue}`]
-                            });
-
-                            // Ensure we're at complete state (progress callback should have done this already)
-                            setCurrentStep(prev => Math.max(prev, steps.length));
-
-                            // Auto-close modal after 2 seconds to show completion and move to pending
-                            console.log('⏱️ Automation complete! Closing modal in 2 seconds...');
-                            setTimeout(() => {
-                                console.log('✅ Moving feature to Pending Replacement section');
-                                onComplete(result.prNumber);
-                            }, 2000);
-                        } else {
-                            // Call real Devin API to recover feature
-                            const result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber, onProgress);
-
-                            setSessionId(result.sessionId);
-                            setSessionUrl(result.url);
-                            setPrNumber(result.prNumber);
-                            setSubDetails({
-                                init: [`Session ID: ${result.sessionId}`, `URL: ${result.url}`],
-                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
-                            });
-
-                            // Ensure we're at complete state (progress callback should have done this already)
-                            setCurrentStep(prev => Math.max(prev, steps.length));
-
-                            // Auto-close modal after 2 seconds to show completion and move to pending
-                            console.log('⏱️ Automation complete! Closing modal in 2 seconds...');
-                            setTimeout(() => {
-                                console.log('✅ Moving feature to Pending Restoration section');
-                                onComplete(result.prNumber);
-                            }, 2000);
-                        }
-                    } catch (err) {
-                        console.error('Devin API error:', err);
-
-                        // If user cancelled, just close modal without showing error
-                        if (err.message && err.message.includes('cancelled by user')) {
-                            console.log('Session cancelled - closing modal');
-                            onCancel();
-                            return;
-                        }
-
-                        setError(err.message || 'Failed to communicate with Devin API');
-                        setCurrentStep(-1);
-                    }
-                } else {
-                    // Simulation mode
-                    setStartTime(Date.now());
-                    const fakeSessionId = `dvn_${Date.now()}`;
-                    setSessionId(fakeSessionId);
-                    setSessionUrl(`https://app.devin.ai/sessions/${fakeSessionId}`);
-                    setPrNumber(getNextPR());
-
-                    setCurrentStep(0); // Immediately show step 0 spinning
-
-                    // After 4 seconds, advance to step 1 (step 0 gets green tick)
-                    setTimeout(() => {
-                        if (!isStopped) {
-                            setCurrentStep(1);
-                        }
-                    }, 4000);
-
-                    console.log('📝 Simulation mode - fake session:', fakeSessionId);
-                }
-            };
-
-            const isComplete = currentStep >= steps.length;
-            const apiConfigured = isDevinAPIConfigured();
-
-            // Special modal for feature flag replacement
-            if (currentStep === -1 && type === 'replace-flag') {
-                return (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
-                        <div className="glass-card rounded-3xl max-w-lg w-full mx-4 p-6">
-                            <h2 className="text-xl font-semibold text-primary mb-4">
-                                Replace Feature Flag "{feature.displayName || feature.name}"
-                            </h2>
-
-                            {error && (
-                                <div className="mb-4 p-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
-                                    <div className="flex items-start gap-2">
-                                        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                        </svg>
-                                        <div>
-                                            <div className="font-semibold mb-1">Error</div>
-                                            <div>{error}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className={`mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
-                                apiConfigured
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            }`}>
-                                <div className={`w-2 h-2 rounded-full ${apiConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                                {apiConfigured ? 'Real Devin API configured' : 'Running in simulation mode'}
-                            </div>
-
-                            {/* Input Fields */}
-                            <div className="space-y-3 mb-4">
-                                <div>
-                                    <label className="block text-xs font-medium text-secondary mb-1.5">Current Feature Flag Name</label>
-                                    <input
-                                        type="text"
-                                        value={oldFlagName}
-                                        onChange={(e) => setOldFlagName(e.target.value)}
-                                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all"
-                                        placeholder="e.g., jumpmod"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-medium text-secondary mb-1.5">New Feature Flag Name</label>
-                                    <input
-                                        type="text"
-                                        value={newFlagName}
-                                        onChange={(e) => setNewFlagName(e.target.value)}
-                                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all"
-                                        placeholder="e.g., feature_v2"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-medium text-secondary mb-1.5">Instruction (What should the new version do?)</label>
-                                    <textarea
-                                        value={instruction}
-                                        onChange={(e) => setInstruction(e.target.value)}
-                                        rows={2}
-                                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all resize-none"
-                                        placeholder="Describe what changes should be made..."
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Summary */}
-                            <div className="space-y-2 mb-6">
-                                <p className="text-xs text-tertiary mb-3">Devin will execute:</p>
-                                <div className="flex items-start gap-2 text-xs text-secondary">
-                                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5" />
-                                    <div>Rename <span className="text-purple-400">{oldFlagName || 'feature flag'}</span> → <span className="text-purple-400">{newFlagName || 'new name'}</span> across 6 files</div>
-                                </div>
-                                <div className="flex items-start gap-2 text-xs text-secondary">
-                                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5" />
-                                    <div>Update physics constant value based on instruction</div>
-                                </div>
-                                <div className="flex items-start gap-2 text-xs text-secondary">
-                                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5" />
-                                    <div>Create backup of all affected files</div>
-                                </div>
-                                <div className="flex items-start gap-2 text-xs text-secondary">
-                                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5" />
-                                    <div>Run tests and verify no breaking changes</div>
-                                </div>
-                                <div className="flex items-start gap-2 text-xs text-secondary">
-                                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5" />
-                                    <div>Create atomic PR with all changes</div>
-                                </div>
-                                <div className="flex items-start gap-2 text-xs text-secondary">
-                                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5" />
-                                    <div>Update dashboard metadata</div>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={onCancel}
-                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 light:bg-slate-100 light:hover:bg-slate-200 rounded-xl transition-all border border-white/10 dark:border-white/10 light:border-slate-300"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={startAutomation}
-                                    disabled={!oldFlagName || !newFlagName || !instruction}
-                                    className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-xl transition-all shadow-lg ${
-                                        !oldFlagName || !newFlagName || !instruction
-                                            ? 'bg-gray-500/50 text-gray-400 cursor-not-allowed'
-                                            : 'text-white bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
-                                    }`}
-                                >
-                                    Start Automation
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            if (currentStep === -1) {
-                return (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
-                        <div className="glass-card rounded-3xl max-w-md w-full mx-4 p-6">
-                            <h2 className="text-xl font-semibold text-primary mb-4">
-                                {type === 'remove' ? 'Remove' :
-                                 type === 'enable' ? 'Enable' :
-                                 type === 'return-to-staging' ? 'Return to Staging' :
-                                 'Recover'} "{feature.name}"?
-                            </h2>
-
-                            {error && (
-                                <div className="mb-4 p-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
-                                    <div className="flex items-start gap-2">
-                                        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                        </svg>
-                                        <div>
-                                            <div className="font-semibold mb-1">Error</div>
-                                            <div>{error}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className={`mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
-                                apiConfigured
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            }`}>
-                                <div className={`w-2 h-2 rounded-full ${apiConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                                {apiConfigured ? 'Real Devin API configured' : 'Running in simulation mode'}
-                            </div>
-
-                            <div className="space-y-2 mb-6">
-                                <p className="text-xs text-tertiary mb-3">Devin will execute:</p>
-                                {steps.slice(0, 6).map(step => (
-                                    <div key={step.id} className="flex items-center gap-2 text-xs text-secondary">
-                                        <div className="w-1 h-1 rounded-full bg-blue-400" />
-                                        {step.label}
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={onCancel}
-                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 light:bg-slate-100 light:hover:bg-slate-200 rounded-xl transition-all border border-white/10 dark:border-white/10 light:border-slate-300"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={startAutomation}
-                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl transition-all shadow-lg"
-                                >
-                                    Start Automation
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-
-            return (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="glass-card rounded-3xl max-w-2xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto relative">
-                        {/* Close X button - top left */}
-                        <button
-                            onClick={() => {
-                                // If complete AND not stopped early, call onComplete to move feature
-                                // If stopped or cancelled, just close modal without moving feature
-                                if (isComplete && !pauseSuccess) {
-                                    onComplete(prNumber);
-                                } else {
-                                    onCancel();
-                                }
-                            }}
-                            className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all border border-red-500/30 hover:border-red-500/50 z-10"
-                            title="Close modal"
-                        >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-
-                        <div className="flex items-start justify-between mb-4 pl-12">
-                            <div className="flex-1">
-                                <h2 className="text-xl font-semibold text-primary mb-1">
-                                    Devin is {type === 'remove' ? 'removing' :
-                                             type === 'enable' ? 'enabling' :
-                                             type === 'return-to-staging' ? 'returning' :
-                                             'recovering'} "{feature.name}"
-                                </h2>
-                                {prNumber && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <a
-                                            href={prUrl || `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`}
-                                            target="_blank"
-                                            className="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition flex items-center gap-1"
-                                        >
-                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-                                            </svg>
-                                            PR #{prNumber}
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
-                            {!isComplete && !pauseSuccess && (
-                                <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full spinner ml-4" />
-                            )}
-                        </div>
-
-                        {/* Current thinking display */}
-                        {currentThinking && !pauseSuccess && (
-                            <div className="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                                <p className="text-xs text-blue-400 font-medium mb-1">Devin's current thinking:</p>
-                                <p className="text-sm text-secondary">{currentThinking}</p>
-                            </div>
-                        )}
-
-                        {/* Pause feedback message */}
-                        {pauseMessage && (
-                            <div className={`mb-4 p-3 rounded-xl border ${
-                                pauseSuccess
-                                    ? 'bg-amber-500/10 border-amber-500/30'
-                                    : 'bg-red-500/10 border-red-500/30'
-                            }`}>
-                                <div className="flex items-start gap-2">
-                                    <svg className={`w-5 h-5 flex-shrink-0 ${pauseSuccess ? 'text-amber-400' : 'text-red-400'}`} fill="currentColor" viewBox="0 0 20 20">
-                                        {pauseSuccess ? (
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
-                                        ) : (
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                        )}
-                                    </svg>
-                                    <div className="flex-1">
-                                        <p className={`text-sm font-medium ${pauseSuccess ? 'text-amber-400' : 'text-red-400'}`}>
-                                            {pauseSuccess ? 'Session Cancelled' : 'Stop Failed'}
-                                        </p>
-                                        <p className="text-xs text-secondary mt-1">{pauseMessage}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="space-y-3 mb-6">
-                            {steps.map((step, idx) => {
-                                // currentStep represents the currently active (spinning) step
-                                // All steps before currentStep are complete (green tick)
-                                // If cancelled, show red X for steps after cancelledAtStep
-                                let status;
-                                if (cancelledAtStep !== null && idx > cancelledAtStep) {
-                                    status = 'cancelled';
-                                } else if (idx < currentStep) {
-                                    status = 'complete';
-                                } else if (idx === currentStep) {
-                                    status = cancelledAtStep !== null ? 'cancelled' : 'active';
-                                } else {
-                                    status = 'waiting';
-                                }
-
-                                return (
-                                    <div key={step.id} className="fade-in">
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 mt-1">
-                                                {status === 'complete' && (
-                                                    <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                                {status === 'active' && (
-                                                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full spinner" />
-                                                )}
-                                                {status === 'cancelled' && (
-                                                    <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                        </svg>
-                                                    </div>
-                                                )}
-                                                {status === 'waiting' && (
-                                                    <div className="w-5 h-5 bg-white/10 rounded-full" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className={`text-sm font-medium ${
-                                                    status === 'active' ? 'text-blue-400' :
-                                                    status === 'complete' ? 'text-secondary' :
-                                                    'text-tertiary'
-                                                }`}>
-                                                    {step.label}
-                                                </p>
-                                                {subDetails[step.id] && (
-                                                    <div className="mt-1 ml-3 space-y-0.5">
-                                                        {subDetails[step.id].map((detail, i) => (
-                                                            <p key={i} className="text-xs text-tertiary">└─ {detail}</p>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <div className="flex gap-3">
-                            {/* Left: View in Devin Session (blue button) */}
-                            <a
-                                href="https://app.devin.ai/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2 border text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 hover:border-blue-500/50 cursor-pointer"
-                            >
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
-                                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/>
-                                </svg>
-                                View in Devin Session
-                            </a>
-
-                            {/* Right: Stop Automation / Automation Complete */}
-                            <button
-                                onClick={async () => {
-                                    // If complete, close modal
-                                    if (isComplete) {
-                                        onComplete(prNumber);
-                                        return;
-                                    }
-
-                                    // If already paused, do nothing
-                                    if (pauseSuccess) {
-                                        return;
-                                    }
-
-                                    // Otherwise, terminate the automation
-                                    setIsStopped(true);
-                                    setPauseMessage('');
-                                    setPauseSuccess(false);
-
-                                    // Capture which step we were on when cancelled
-                                    setCancelledAtStep(currentStep);
-
-                                    // Terminate the Devin session if we have a session ID
-                                    if (sessionId && window.DevinAPI) {
-                                        try {
-                                            console.log('🛑 Terminating Devin session...');
-                                            await window.DevinAPI.cancelSession(sessionId);
-
-                                            console.log('✓ Devin session terminated successfully');
-                                            setPauseSuccess(true);
-                                            setPauseMessage('Session cancelled. The feature remains in Testing Game Modes.');
-                                            setDevinStatus('cancelled');
-
-                                            // Update current thinking to show cancellation
-                                            setCurrentThinking('Session cancelled by user.');
-                                        } catch (err) {
-                                            console.error('❌ Failed to terminate Devin session:', err);
-                                            setPauseMessage(`Failed to stop automation: ${err.message}`);
-                                            setIsStopped(false);
-                                        }
-                                    } else {
-                                        setPauseMessage('No session ID available to terminate.');
-                                        setIsStopped(false);
-                                    }
-                                }}
-                                disabled={isStopped || pauseSuccess}
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2 ${
-                                    isComplete
-                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 hover:border-emerald-500/50 cursor-pointer'
-                                        : pauseSuccess
-                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 cursor-default'
-                                        : isStopped
-                                        ? 'bg-gray-500/20 text-gray-400 cursor-wait border border-gray-500/30'
-                                        : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 border border-red-500/30 hover:border-red-500/50'
-                                }`}
-                            >
-                                {isComplete ? (
-                                    <>
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-                                        </svg>
-                                        View Dashboard
-                                    </>
-                                ) : pauseSuccess ? (
-                                    <>
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                        </svg>
-                                        Automation Cancelled
-                                    </>
-                                ) : isStopped ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full spinner" />
-                                        Stopping...
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
-                                        </svg>
-                                        Stop Automation
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
+        // Main Dashboard Component
         function Dashboard() {
-            const [isDark, setIsDark] = useTheme();
             const [gameWindow, setGameWindow] = useState(null);
             const [connected, setConnected] = useState(false);
             const [modStates, setModStates] = useState({});
-            const [removedFeatures, setRemovedFeatures] = useState(() => {
-                const stored = localStorage.getItem('removed_features');
-                const parsed = stored ? JSON.parse(stored) : [];
+            const checkIntervalRef = useRef(null);
 
-                // Ensure Tilt Gravity is in removed features (it doesn't have a PR)
-                const hasTiltGravity = parsed.find(f => f.name === 'Tilt Gravity');
-                if (!hasTiltGravity) {
-                    parsed.push({
-                        name: 'Tilt Gravity',
-                        description: 'Device motion controls gravity.',
-                        file: 'Source/settings/mods.js',
-                        lineStart: 509,
-                        lineEnd: 550,
-                        lines: 42,
-                        category: 'movement',
-                        removedAt: Date.now()
-                    });
+            // Check game connection
+            const checkConnection = () => {
+                try {
+                    const isConnected = gameWindow && !gameWindow.closed && gameWindow.FSM && gameWindow.FSM.ModAttacher;
+                    setConnected(isConnected);
+                    return isConnected;
+                } catch (e) {
+                    setConnected(false);
+                    return false;
                 }
-                return parsed;
-            });
-            const [enabledFeatures, setEnabledFeatures] = useState(() => {
-                const stored = localStorage.getItem('enabled_features');
-                return stored ? JSON.parse(stored) : [];
-            });
-            const [pendingRemoval, setPendingRemoval] = useState(() => {
-                const stored = localStorage.getItem('pending_removal');
-                return stored ? JSON.parse(stored) : [];
-            });
-            const [pendingRestoration, setPendingRestoration] = useState(() => {
-                const stored = localStorage.getItem('pending_restoration');
-                const parsed = stored ? JSON.parse(stored) : [];
+            };
 
-                // Remove Tilt Gravity from pending restoration if it exists
-                return parsed.filter(f => f.name !== 'Tilt Gravity');
-            });
-            const [activeModal, setActiveModal] = useState(null);
-            const [activeTab, setActiveTab] = useState('testing'); // 'testing' or 'flags'
-            const [checkingMerge, setCheckingMerge] = useState(null); // Track which feature is being checked
-            const [mergeSuccess, setMergeSuccess] = useState(null); // Track merge completion
-            const [removedFeatureFlags, setRemovedFeatureFlags] = useState(() => {
-                const stored = localStorage.getItem('removed_feature_flags');
-                return stored ? JSON.parse(stored) : [];
-            });
-            const [pendingReplacement, setPendingReplacement] = useState(() => {
-                const stored = localStorage.getItem('pending_replacement');
-                return stored ? JSON.parse(stored) : [];
-            });
-
-            // Clean up QCount and Palette Swap from pending removal on mount (they were cancelled)
-            useEffect(() => {
-                const cleanupFeatures = ['QCount', 'Palette Swap'];
-                const stored = localStorage.getItem('pending_removal');
-                if (stored) {
-                    const pending = JSON.parse(stored);
-                    const cleaned = pending.filter(f => !cleanupFeatures.includes(f.name));
-                    if (cleaned.length !== pending.length) {
-                        console.log('🧹 Cleaning up cancelled features from pending removal:', cleanupFeatures);
-                        localStorage.setItem('pending_removal', JSON.stringify(cleaned));
-                        setPendingRemoval(cleaned);
-                    }
-                }
-            }, []); // Run once on mount
-
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    try {
-                        if (!gameWindow || gameWindow.closed) {
-                            setConnected(false);
-                            return;
-                        }
-
-                        // Check if we can access the game window
-                        const hasFSM = !!gameWindow.FSM;
-                        const hasModAttacher = hasFSM && !!gameWindow.FSM.ModAttacher;
-                        const isConnected = hasModAttacher;
-
-                        console.log('Connection check:', {
-                            windowExists: !!gameWindow,
-                            windowClosed: gameWindow.closed,
-                            hasFSM,
-                            hasModAttacher,
-                            isConnected
-                        });
-
-                        setConnected(isConnected);
-                        if (isConnected) updateModStates(gameWindow);
-                    } catch (e) {
-                        console.error('Connection check error:', e.message);
-                        setConnected(false);
-                    }
-                }, 1000);
-                return () => clearInterval(interval);
-            }, [gameWindow]);
-
+            // Open game window
             const openGame = () => {
-                console.log('Opening game window...');
-                const win = window.open('index.html', 'Mario Bros. for Cognition', 'width=1200,height=800');
+                const win = window.open(
+                    'index.html',
+                    'FullScreenMario',
+                    'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no'
+                );
 
-                if (!win) {
-                    console.error('Failed to open game window - popup may be blocked');
-                    return;
-                }
-
-                console.log('Game window opened, waiting for FSM to load...');
                 setGameWindow(win);
 
+                // Poll for game readiness
                 const checkLoaded = setInterval(() => {
                     try {
                         if (win.FSM && win.FSM.ModAttacher) {
-                            console.log('✓ Game loaded successfully, FSM.ModAttacher is available');
+                            console.log('✓ Game loaded and ready');
                             clearInterval(checkLoaded);
                             updateModStates(win);
-                        } else {
-                            console.log('Still waiting for FSM...', { hasFSM: !!win.FSM, hasModAttacher: !!(win.FSM && win.FSM.ModAttacher) });
                         }
-                    } catch (e) {
-                        console.error('Error checking game load status:', e.message);
-                    }
+                    } catch (e) {}
                 }, 100);
             };
 
+            // Update mod states from game
             const updateModStates = (win) => {
-                if (!win || !win.FSM) return;
+                if (!win || !win.FSM || !win.FSM.ModAttacher) return;
+
                 const states = {};
-                modsData.filter(m => !removedFeatures.find(r => r.name === m.name)).forEach(mod => {
+                modsList.forEach(mod => {
                     try {
                         const modData = win.FSM.ModAttacher.getMod(mod.name);
                         states[mod.name] = modData ? modData.enabled : false;
@@ -1749,671 +217,136 @@
                 setModStates(states);
             };
 
+            // Toggle mod
             const toggleMod = (modName) => {
-                if (!connected) return;
+                if (!checkConnection()) {
+                    alert('Game window not connected! Click "Launch Game" button first.');
+                    return;
+                }
+
                 try {
                     gameWindow.FSM.ModAttacher.toggleMod(modName);
                     const newState = gameWindow.FSM.ModAttacher.getMod(modName).enabled;
-                    setModStates(prev => ({ ...prev, [modName]: newState }));
+
+                    setModStates(prev => ({
+                        ...prev,
+                        [modName]: newState
+                    }));
+
+                    console.log(`✓ ${modName} toggled to ${newState}`);
                 } catch (err) {
                     console.error('Error toggling mod:', err);
                 }
             };
 
-            const handleRemoveComplete = (feature, prNumber) => {
-                // Put in "pending removal" state - waiting for PR merge
-                const pending = {
-                    ...feature,
-                    createdAt: Date.now(),
-                    prNumber,
-                    prUrl: `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`,
-                    backupId: `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}.json`
-                };
-                const newPending = [...pendingRemoval, pending];
-                setPendingRemoval(newPending);
-                localStorage.setItem('pending_removal', JSON.stringify(newPending));
-
-                setActiveModal(null);
-
-                console.log(`✓ PR #${prNumber} created. Waiting for merge to complete removal.`);
-            };
-
-            const handleRecoverComplete = (feature, prNumber) => {
-                // Put in "pending restoration" state - waiting for PR merge
-                const pending = {
-                    ...feature,
-                    createdAt: Date.now(),
-                    prNumber,
-                    prUrl: `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`,
-                };
-                const newPending = [...pendingRestoration, pending];
-                setPendingRestoration(newPending);
-                localStorage.setItem('pending_restoration', JSON.stringify(newPending));
-
-                setActiveModal(null);
-
-                console.log(`✓ PR #${prNumber} created. Waiting for merge to complete restoration.`);
-            };
-
-            const handleEnableComplete = (feature, prNumber) => {
-                const enabled = {
-                    ...feature,
-                    enabledAt: Date.now(),
-                    prNumber,
-                    backupId: `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}.json`
-                };
-                const newEnabled = [...enabledFeatures, enabled];
-                setEnabledFeatures(newEnabled);
-                localStorage.setItem('enabled_features', JSON.stringify(newEnabled));
-                setActiveModal(null);
-            };
-
-            const handleReturnToStagingComplete = (feature, prNumber) => {
-                const newEnabled = enabledFeatures.filter(e => e.name !== feature.name);
-                setEnabledFeatures(newEnabled);
-                localStorage.setItem('enabled_features', JSON.stringify(newEnabled));
-                setActiveModal(null);
-            };
-
-            // Check if a GitHub PR is merged
-            const checkPRMerged = async (prNumber) => {
-                try {
-                    const response = await fetch(`https://api.github.com/repos/toby-drinkall/mario-feature-flags-demo-cog/pulls/${prNumber}`);
-                    if (!response.ok) {
-                        console.error('Failed to check PR status');
-                        return false;
-                    }
-                    const pr = await response.json();
-                    return pr.merged === true;
-                } catch (err) {
-                    console.error('Error checking PR merge status:', err);
-                    return false;
-                }
-            };
-
-            // Complete the removal after PR is merged
-            const completeRemoval = (feature) => {
-                // Remove from pending
-                const newPending = pendingRemoval.filter(p => p.name !== feature.name);
-                setPendingRemoval(newPending);
-                localStorage.setItem('pending_removal', JSON.stringify(newPending));
-
-                // Add to removed
-                const removed = {
-                    ...feature,
-                    removedAt: Date.now(),
-                };
-                const newRemoved = [...removedFeatures, removed];
-                setRemovedFeatures(newRemoved);
-                localStorage.setItem('removed_features', JSON.stringify(newRemoved));
-
-                // Disable in game
-                if (connected && gameWindow && gameWindow.FSM && gameWindow.FSM.ModAttacher) {
-                    try {
-                        const modData = gameWindow.FSM.ModAttacher.getMod(feature.name);
-                        if (modData && modData.enabled) {
-                            console.log(`Disabling ${feature.name} in game after PR merge`);
-                            gameWindow.FSM.ModAttacher.toggleMod(feature.name);
-                        }
+            // Setup connection polling
+            useEffect(() => {
+                checkIntervalRef.current = setInterval(() => {
+                    checkConnection();
+                    if (gameWindow) {
                         updateModStates(gameWindow);
-                    } catch (err) {
-                        console.error('Error disabling mod in game:', err);
                     }
-                }
+                }, 1000);
 
-                console.log(`✅ PR #${feature.prNumber} merged. ${feature.name} removed.`);
-            };
-
-            // Complete the restoration after PR is merged
-            const completeRestoration = (feature) => {
-                // Remove from pending
-                const newPending = pendingRestoration.filter(p => p.name !== feature.name);
-                setPendingRestoration(newPending);
-                localStorage.setItem('pending_restoration', JSON.stringify(newPending));
-
-                // Remove from removed features
-                const newRemoved = removedFeatures.filter(r => r.name !== feature.name);
-                setRemovedFeatures(newRemoved);
-                localStorage.setItem('removed_features', JSON.stringify(newRemoved));
-
-                // Re-sync game
-                if (connected && gameWindow && gameWindow.FSM && gameWindow.FSM.ModAttacher) {
-                    try {
-                        console.log(`${feature.name} restored - now available in game`);
-                        updateModStates(gameWindow);
-                    } catch (err) {
-                        console.error('Error syncing game after restoration:', err);
+                return () => {
+                    if (checkIntervalRef.current) {
+                        clearInterval(checkIntervalRef.current);
                     }
-                }
-
-                console.log(`✅ PR #${feature.prNumber} merged. ${feature.name} restored.`);
-            };
-
-            // Complete the replacement after PR is merged
-            const completeReplacement = (feature) => {
-                // Remove from pending replacement
-                const newPending = pendingReplacement.filter(p => p.name !== feature.name);
-                setPendingReplacement(newPending);
-                localStorage.setItem('pending_replacement', JSON.stringify(newPending));
-
-                // Add old feature flag to removed
-                const removed = {
-                    name: feature.name,
-                    displayName: feature.displayName,
-                    description: `Replaced by ${feature.newName}`,
-                    prNumber: feature.prNumber,
-                    removedAt: Date.now(),
-                    filesAffected: feature.filesAffected,
                 };
-                const newRemoved = [...removedFeatureFlags, removed];
-                setRemovedFeatureFlags(newRemoved);
-                localStorage.setItem('removed_feature_flags', JSON.stringify(newRemoved));
+            }, [gameWindow]);
 
-                console.log(`✅ PR #${feature.prNumber} merged. ${feature.name} replaced with ${feature.newName}.`);
-            };
-
-            // Check and complete PR merge for a feature
-            const checkAndCompleteMerge = async (feature, type) => {
-                setCheckingMerge(feature.name);
-                setMergeSuccess(null);
-                console.log(`🔍 Checking merge status for PR #${feature.prNumber}...`);
-
-                try {
-                    const isMerged = await checkPRMerged(feature.prNumber);
-
-                    if (isMerged) {
-                        console.log(`✅ PR #${feature.prNumber} is merged!`);
-
-                        // Show success message briefly
-                        setCheckingMerge(null);
-                        setMergeSuccess(feature.name);
-
-                        // Wait 1.5 seconds before completing
-                        setTimeout(() => {
-                            if (type === 'removal') {
-                                completeRemoval(feature);
-                            } else if (type === 'restoration') {
-                                completeRestoration(feature);
-                            } else if (type === 'replacement') {
-                                completeReplacement(feature);
-                            }
-                            setMergeSuccess(null);
-                        }, 1500);
-
-                        return true;
-                    } else {
-                        console.log(`⏳ PR #${feature.prNumber} not merged yet`);
-                        setCheckingMerge(null);
-                        alert(`PR #${feature.prNumber} hasn't been merged yet. Please merge it on GitHub first.`);
-                        return false;
-                    }
-                } catch (err) {
-                    console.error('Error checking merge:', err);
-                    setCheckingMerge(null);
-                    alert(`Error checking PR status: ${err.message}`);
-                    return false;
-                }
-            };
-
-            const activeFeatures = modsData.filter(m =>
-                !removedFeatures.find(r => r.name === m.name) &&
-                !enabledFeatures.find(e => e.name === m.name) &&
-                !pendingRemoval.find(p => p.name === m.name)
-            );
-            // Count toggled-on game modes + active feature flags as "currently enabled"
-            const enabledModsCount = Object.values(modStates).filter(Boolean).length;
-            const enabledFlagsCount = featureFlagsData.filter(flag =>
-                flag.enabled && !removedFeatureFlags.find(r => r.name === flag.name)
-            ).length;
-            const enabledCount = enabledModsCount + enabledFlagsCount;
-            const devinIntegrated = isDevinAPIConfigured();
+            const enabledCount = Object.values(modStates).filter(Boolean).length;
 
             return (
-                <div className="min-h-screen p-6">
-                    <div className="max-w-7xl mx-auto">
-                        {/* Header */}
-                        <div className="mb-8">
-                            <div className="flex items-start justify-between mb-4">
+                <div className="min-h-screen bg-gray-50">
+                    {/* Header */}
+                    <header className="bg-white border-b border-gray-200">
+                        <div className="max-w-7xl mx-auto px-6 py-6">
+                            <div className="flex items-center justify-between">
                                 <div>
-                                    <h1 className="mario-title">MARIO BROS.</h1>
-                                    <h2 className="text-2xl font-semibold text-primary mb-2">Feature Management</h2>
-                                    <p className="text-sm text-tertiary">Real-time control and automated removal</p>
+                                    <h1 className="text-2xl font-bold text-gray-900">Cognition Demo Dashboard</h1>
+                                    <p className="text-sm text-gray-600 mt-1">Real-time feature management and control</p>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setIsDark(!isDark)}
-                                        className="p-3 glass-card rounded-xl transition-all hover:scale-105"
-                                        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                                    >
-                                        {isDark ? (
-                                            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                                            </svg>
-                                        ) : (
-                                            <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                    <button
-                                        onClick={openGame}
-                                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Launch Game
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={openGame}
+                                    className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                                >
+                                    Launch Game
+                                </button>
                             </div>
-                            <StatusBadge connected={connected} devinIntegrated={devinIntegrated} />
-                        </div>
 
+                            {/* Connection Status */}
+                            <div className="mt-4">
+                                <span className={`status-badge ${connected ? 'status-connected' : 'status-disconnected'}`}>
+                                    <span className={connected ? '' : 'pulse'}>●</span>
+                                    {connected ? 'Connected to Game' : 'Waiting for Connection'}
+                                </span>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-6 py-8">
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-4 mb-8">
-                            <div className="glass-card rounded-2xl p-6">
-                                <div className="text-4xl font-semibold text-primary tabular-nums mb-2">{activeFeatures.length}</div>
-                                <div className="text-xs text-tertiary uppercase tracking-wider">Active Features</div>
+                            <div className="bg-white rounded-lg border border-gray-200 p-6 card-shadow">
+                                <div className="text-3xl font-bold text-gray-900">{modsList.length}</div>
+                                <div className="text-sm text-gray-600 mt-1">Total Features</div>
                             </div>
-                            <div className="glass-card rounded-2xl p-6">
-                                <div className="text-4xl font-semibold stat-blue text-blue-400 dark:text-blue-400 tabular-nums mb-2">{enabledCount}</div>
-                                <div className="text-xs text-tertiary uppercase tracking-wider">Currently Enabled</div>
+                            <div className="bg-white rounded-lg border border-gray-200 p-6 card-shadow">
+                                <div className="text-3xl font-bold text-blue-600">{enabledCount}</div>
+                                <div className="text-sm text-gray-600 mt-1">Active Features</div>
                             </div>
-                            <div className="glass-card rounded-2xl p-6">
-                                <div className="text-4xl font-semibold stat-red text-red-400 dark:text-red-400 tabular-nums mb-2">{removedFeatures.length}</div>
-                                <div className="text-xs text-tertiary uppercase tracking-wider">Removed</div>
+                            <div className="bg-white rounded-lg border border-gray-200 p-6 card-shadow">
+                                <div className="text-3xl font-bold text-gray-400">{modsList.length - enabledCount}</div>
+                                <div className="text-sm text-gray-600 mt-1">Inactive Features</div>
                             </div>
                         </div>
 
-                        {/* Tab Navigation */}
-                        <div className="tab-container">
-                            <button
-                                onClick={() => setActiveTab('testing')}
-                                className={`tab-button ${activeTab === 'testing' ? 'active' : ''}`}
-                            >
-                                Testing Game Modes
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('flags')}
-                                className={`tab-button ${activeTab === 'flags' ? 'active' : ''}`}
-                            >
-                                Feature Flags
-                            </button>
-                        </div>
-
-                        {/* Testing Game Modes Tab */}
-                        {activeTab === 'testing' && (
-                            <div>
-
-                            {/* Active Features */}
-                            <div className="grid grid-cols-2 gap-3 mb-8">
-                                {activeFeatures.map(feature => (
+                        {/* Features Section */}
+                        <section className="mb-12">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold text-gray-900">Features</h2>
+                                <span className="text-sm text-gray-500">{modsList.length} total</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {modsList.map(mod => (
                                     <FeatureCard
-                                        key={feature.name}
-                                        feature={feature}
-                                        enabled={modStates[feature.name] || false}
+                                        key={mod.name}
+                                        mod={mod}
+                                        enabled={modStates[mod.name] || false}
                                         onToggle={toggleMod}
-                                        onEnable={null}
-                                        onRemove={(f) => setActiveModal({ type: 'remove', feature: f })}
                                         connected={connected}
                                     />
                                 ))}
                             </div>
+                        </section>
 
-                            {/* Pending Removal PRs */}
-                            {pendingRemoval.length > 0 && (
-                                <>
-                                    <div className="relative mb-4 mt-8">
-                                        <div className="absolute inset-0 flex items-center">
-                                            <div className="w-full border-t border-yellow-500/30"></div>
-                                        </div>
-                                        <div className="relative flex justify-center">
-                                            <span className="px-4 text-sm font-medium text-yellow-400 glass-card rounded-full py-1 border border-yellow-500/30">
-                                                ⏳ Pending Removal (Awaiting PR Merge)
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3 mb-8">
-                                        {pendingRemoval.map(feature => (
-                                            <div key={feature.name} className="glass-card rounded-2xl p-4 border-2 border-yellow-500/30">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex-1">
-                                                        <h3 className="text-sm font-semibold text-primary mb-1">{feature.name}</h3>
-                                                        <p className="text-xs text-yellow-400 mb-2">
-                                                            PR #{feature.prNumber} • {Math.floor((Date.now() - feature.createdAt) / 60000)}m ago
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <a
-                                                        href={feature.prUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all flex items-center justify-center gap-1"
-                                                    >
-                                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-                                                        </svg>
-                                                        View PR
-                                                    </a>
-                                                    <button
-                                                        onClick={() => checkAndCompleteMerge(feature, 'removal')}
-                                                        disabled={checkingMerge === feature.name || mergeSuccess === feature.name}
-                                                        className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
-                                                            mergeSuccess === feature.name
-                                                                ? 'bg-emerald-500/30 text-emerald-300 border-2 border-emerald-400'
-                                                                : checkingMerge === feature.name
-                                                                ? 'bg-gray-500/20 text-gray-400 cursor-wait'
-                                                                : 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
-                                                        }`}
-                                                    >
-                                                        {mergeSuccess === feature.name ? (
-                                                            <>
-                                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                </svg>
-                                                                Merge Complete!
-                                                            </>
-                                                        ) : checkingMerge === feature.name ? (
-                                                            <>
-                                                                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full spinner" />
-                                                                Checking...
-                                                            </>
-                                                        ) : (
-                                                            'Check Merge'
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Pending Restoration PRs */}
-                            {pendingRestoration.length > 0 && (
-                                <>
-                                    <div className="relative mb-4">
-                                        <div className="absolute inset-0 flex items-center">
-                                            <div className="w-full border-t border-orange-500/30"></div>
-                                        </div>
-                                        <div className="relative flex justify-center">
-                                            <span className="px-4 text-sm font-medium text-orange-400 glass-card rounded-full py-1 border border-orange-500/30">
-                                                ⏳ Pending PR Merge
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3 mb-8">
-                                        {pendingRestoration.map(feature => (
-                                            <div key={feature.name} className="glass-card rounded-2xl p-4 border-2 border-orange-500/30">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex-1">
-                                                        <h3 className="text-sm font-semibold text-primary mb-1">{feature.name}</h3>
-                                                        <p className="text-xs text-orange-400 mb-2">
-                                                            PR #{feature.prNumber} • {Math.floor((Date.now() - feature.createdAt) / 60000)}m ago
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <a
-                                                        href={feature.prUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all flex items-center justify-center gap-1"
-                                                    >
-                                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-                                                        </svg>
-                                                        View PR
-                                                    </a>
-                                                    <button
-                                                        onClick={() => checkAndCompleteMerge(feature, 'restoration')}
-                                                        disabled={checkingMerge === feature.name || mergeSuccess === feature.name}
-                                                        className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
-                                                            mergeSuccess === feature.name
-                                                                ? 'bg-emerald-500/30 text-emerald-300 border-2 border-emerald-400'
-                                                                : checkingMerge === feature.name
-                                                                ? 'bg-gray-500/20 text-gray-400 cursor-wait'
-                                                                : 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
-                                                        }`}
-                                                    >
-                                                        {mergeSuccess === feature.name ? (
-                                                            <>
-                                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                </svg>
-                                                                Merge Complete!
-                                                            </>
-                                                        ) : checkingMerge === feature.name ? (
-                                                            <>
-                                                                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full spinner" />
-                                                                Checking...
-                                                            </>
-                                                        ) : (
-                                                            'Check Merge'
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Separator - only show if there are removed features */}
-                            {removedFeatures.length > 0 && (
-                                <div className="relative mb-8">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-white/10 dark:border-white/10 light:border-slate-300"></div>
-                                    </div>
-                                    <div className="relative flex justify-center">
-                                        <span className="px-4 text-sm text-tertiary glass-card rounded-full py-1">
-                                            Removed Game Modes
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Removed Features - show in same grid layout */}
-                            {removedFeatures.length > 0 && (
-                                <div className="grid grid-cols-2 gap-3">
-                                    {removedFeatures.map(feature => (
-                                        <div key={feature.name} className="glass-card rounded-2xl p-4 opacity-60 hover:opacity-100 transition">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex-1">
-                                                    <h3 className="text-sm font-semibold text-primary mb-1">{feature.name}</h3>
-                                                    <p className="text-xs text-tertiary mb-2">
-                                                        Removed {Math.floor((Date.now() - feature.removedAt) / 60000)}m ago
-                                                    </p>
-                                                    <div className="flex items-center gap-3 text-xs text-tertiary">
-                                                        <span>PR #{feature.prNumber}</span>
-                                                        <span>•</span>
-                                                        <span>{feature.lines} lines</span>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => setActiveModal({ type: 'recover', feature })}
-                                                    className="px-3 py-1.5 text-xs font-medium btn-recover text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-all"
-                                                >
-                                                    Restore
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                        {/* Feature Flag Management Section (Draft) */}
+                        <section>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold text-gray-900">Feature Flag Management</h2>
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Coming Soon</span>
                             </div>
-                        )}
-
-                        {/* Feature Flags Tab */}
-                        {activeTab === 'flags' && (
-                            <div>
-                                {/* Active Feature Flags */}
-                                <div className="grid grid-cols-2 gap-3 mb-8">
-                                    {featureFlagsData
-                                        .filter(flag => !removedFeatureFlags.find(r => r.name === flag.name))
-                                        .map(flag => (
-                                            <FeatureFlagCard
-                                                key={flag.name}
-                                                feature={flag}
-                                                onReplace={(f) => setActiveModal({ type: 'replace-flag', feature: f })}
-                                            />
-                                        ))
-                                    }
-                                    {featureFlagsData.filter(flag => !removedFeatureFlags.find(r => r.name === flag.name)).length === 0 && (
-                                        <div className="col-span-2 glass-card rounded-2xl p-8 text-center">
-                                            <div className="text-tertiary text-sm">
-                                                No feature flags yet. Feature flags will appear here when added.
-                                            </div>
-                                        </div>
-                                    )}
+                            <div className="bg-white rounded-lg border border-gray-200 p-8 card-shadow">
+                                <div className="text-center text-gray-500">
+                                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <h3 className="text-sm font-medium text-gray-900 mb-2">Automated Feature Flag Removal</h3>
+                                    <p className="text-sm text-gray-600 max-w-md mx-auto">
+                                        Track Devin automation status for feature flag cleanup and pull request generation. This section will display real-time progress updates.
+                                    </p>
                                 </div>
-
-                                {/* Pending Replacement PRs */}
-                                {pendingReplacement.length > 0 && (
-                                    <>
-                                        {/* Separator with label */}
-                                        <div className="relative mb-4 mt-8">
-                                            <div className="absolute inset-0 flex items-center">
-                                                <div className="w-full border-t border-purple-500/30"></div>
-                                            </div>
-                                            <div className="relative flex justify-center">
-                                                <span className="px-4 text-sm font-medium text-purple-400 glass-card rounded-full py-1 border border-purple-500/30">
-                                                    ⏳ Pending Replacement (Awaiting PR Merge)
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Grid of pending items */}
-                                        <div className="grid grid-cols-2 gap-3 mb-8">
-                                            {pendingReplacement.map(feature => (
-                                                <div key={feature.name} className="glass-card rounded-2xl p-4 border-2 border-purple-500/30">
-                                                    {/* Header */}
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <div className="flex-1">
-                                                            <h3 className="text-sm font-semibold text-primary mb-1">
-                                                                {feature.name} → {feature.newName}
-                                                            </h3>
-                                                            <p className="text-xs text-purple-400 mb-2">
-                                                                PR #{feature.prNumber} • {Math.floor((Date.now() - feature.createdAt) / 60000)}m ago
-                                                            </p>
-                                                            <p className="text-xs text-secondary">
-                                                                {feature.instruction} ({feature.multiplier}x multiplier)
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Action Buttons */}
-                                                    <div className="flex gap-2">
-                                                        {/* View PR Button */}
-                                                        <a
-                                                            href={feature.prUrl}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all flex items-center justify-center gap-1"
-                                                        >
-                                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
-                                                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-                                                            </svg>
-                                                            View PR
-                                                        </a>
-
-                                                        {/* Check Merge Button */}
-                                                        <button
-                                                            onClick={() => checkAndCompleteMerge(feature, 'replacement')}
-                                                            disabled={checkingMerge === feature.name || mergeSuccess === feature.name}
-                                                            className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
-                                                                mergeSuccess === feature.name
-                                                                    ? 'bg-emerald-500/30 text-emerald-300 border-2 border-emerald-400'
-                                                                    : checkingMerge === feature.name
-                                                                    ? 'bg-gray-500/20 text-gray-400 cursor-wait'
-                                                                    : 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
-                                                            }`}
-                                                        >
-                                                            {mergeSuccess === feature.name ? (
-                                                                <>
-                                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                                    </svg>
-                                                                    Merge Complete!
-                                                                </>
-                                                            ) : checkingMerge === feature.name ? (
-                                                                <>
-                                                                    <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full spinner" />
-                                                                    Checking...
-                                                                </>
-                                                            ) : (
-                                                                'Check Merge'
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* Separator for Removed Feature Flags - always show */}
-                                <div className="relative mb-8 mt-8">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-white/10 dark:border-white/10 light:border-slate-300"></div>
-                                    </div>
-                                    <div className="relative flex justify-center">
-                                        <span className="px-4 text-sm text-tertiary glass-card rounded-full py-1">
-                                            Removed Feature Flags
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Removed Feature Flags */}
-                                {removedFeatureFlags.length > 0 ? (
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {removedFeatureFlags.map(flag => (
-                                            <RemovedFeatureFlagCard
-                                                key={flag.name}
-                                                feature={flag}
-                                                onRecover={(f) => setActiveModal({ type: 'recover-flag', feature: f })}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="glass-card rounded-2xl p-8 text-center opacity-60">
-                                        <div className="text-tertiary text-sm">
-                                            No removed feature flags. Removed feature flags will appear here.
-                                        </div>
-                                    </div>
-                                )}
                             </div>
-                        )}
-                    </div>
-
-                    {activeModal && (
-                        <AutomationModal
-                            feature={activeModal.feature}
-                            type={activeModal.type}
-                            onComplete={(prNumber) => {
-                                if (activeModal.type === 'remove') {
-                                    handleRemoveComplete(activeModal.feature, prNumber);
-                                } else if (activeModal.type === 'enable') {
-                                    handleEnableComplete(activeModal.feature, prNumber);
-                                } else if (activeModal.type === 'return-to-staging') {
-                                    handleReturnToStagingComplete(activeModal.feature, prNumber);
-                                } else {
-                                    handleRecoverComplete(activeModal.feature, prNumber);
-                                }
-                            }}
-                            onCancel={() => setActiveModal(null)}
-                        />
-                    )}
+                        </section>
+                    </main>
                 </div>
             );
         }
 
+        // Render app
         ReactDOM.render(<Dashboard />, document.getElementById('root'));
     </script>
 </body>
 </html>
-<!-- Cache bust: 1766356892 -->

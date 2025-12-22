@@ -1,0 +1,30 @@
+{
+  "feature": "Tilt Gravity",
+  "backup_type": "dashboard_references",
+  "timestamp": "$(date -Iseconds)",
+  "description": "Backup of Tilt Gravity references in dashboard files before removal",
+  "files_affected": [
+    "Source/cognition-dashboard.html",
+    "Source/cognition-dashboard-premium.html", 
+    "Source/cognition-dashboard-final.html",
+    "Source/cognition-dashboard-v2.html"
+  ],
+  "references": {
+    "cognition-dashboard.html": {
+      "lines": "332-336",
+      "code": "{\n    name: \"Tilt Gravity\",\n    description: \"Device motion controls gravity for all characters.\",\n    author: { name: \"Josh Goldberg\", email: \"josh@fullscreenmario.com\" }\n}"
+    },
+    "cognition-dashboard-premium.html": {
+      "line": 708,
+      "code": "{ name: \"Tilt Gravity\", description: \"Device motion controls gravity.\", file: \"Source/settings/mods.js\", lineStart: 509, lineEnd: 550, lines: 42, category: \"movement\" }"
+    },
+    "cognition-dashboard-final.html": {
+      "line": 48,
+      "code": "{ name: \"Tilt Gravity\", description: \"Device motion controls gravity.\", file: \"Source/settings/mods.js\", lineStart: 509, lineEnd: 550, lines: 42 }"
+    },
+    "cognition-dashboard-v2.html": {
+      "line": 131,
+      "code": "{ name: \"Tilt Gravity\", description: \"Device motion controls gravity.\" }"
+    }
+  }
+}
