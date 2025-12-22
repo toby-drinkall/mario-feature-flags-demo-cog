@@ -11,7 +11,8 @@ What's impressive is the **Replace** operation - Devin must understand code depe
 "Let me show you the tech stack:
 - **Frontend**: Pure React (no framework) with Tailwind CSS and Framer Motion
 - **Backend**: Local server connecting to Devin API and GitHub API
-- **GitHub Integration**: Auto-syncs PR states on page load - fixed a caching bug where dashboard showed outdated merge statuses
+- **GitHub Integration**: Polls GitHub API to sync PR states - solved a Chrome/Safari over-caching issue where the browser served stale data and missed completed merges
+- **Cache Busting**: HTTP headers force fresh content delivery on every page load
 - **Git Workflow**: Atomic PRs to cognition-dashboard-devin-integration branch"
 
 ### Key Decision: Why Devin?
@@ -146,18 +147,25 @@ Here's the complexity: jumpmod is a physics constant referenced in **5 interdepe
 
 ## 🔄 GitHub Sync System (30 seconds)
 
-### Click the Sync button
-"The Sync button polls GitHub's PR API and parses titles:
-- **'Remove [name] feature flag'** → Mark as pending removal
-- **'Recover [name] feature flag'** → Mark as pending restoration
-- **'Replace [old] with [new]'** → Track replacement with new flag creation
+### The Caching Problem
+"I ran into a Chrome/Safari bug where the browser aggressively cached API responses and localStorage state. After merging PRs on GitHub, the dashboard still showed features as 'Pending' because the browser served stale cached data instead of fetching fresh PR states.
 
-**Why it's necessary:**
-- Dashboard state is localStorage (survives page reload)
-- GitHub is source of truth
-- Without sync, dashboard showed stale PR states and missed completed merges (caching bug)
-- Auto-sync on page load fixes this issue
-- Manual sync button available after merging a PR
+**How we solved it:**
+
+1. **Cache Busting Headers** - HTTP Cache-Control, Pragma, and Expires headers force the browser to always fetch fresh HTML/JS instead of using cached versions
+
+2. **GitHub Sync Button** - Directly polls GitHub's PR API (bypassing all browser caches) and parses PR titles:
+   - **'Remove [name] feature flag'** → Mark as pending removal
+   - **'Recover [name] feature flag'** → Mark as pending restoration
+   - **'Replace [old] with [new]'** → Track replacement with new flag creation
+
+3. **Auto-Sync on Page Load** - Runs the GitHub sync automatically when you load the dashboard to ensure localStorage matches GitHub's actual state
+
+**What this assures:**
+- Dashboard always reflects the true state of your PRs on GitHub
+- No stale 'Pending' states after merges complete
+- localStorage (dashboard cache) stays synchronized with GitHub (source of truth)
+- Manual sync button available any time you need to force a refresh
 
 **After clicking 'Check Merge':** It polls GitHub every 500ms for 5 seconds. When merge confirmed, it auto-pulls the git changes and prompts you to reload to see updated code."
 
