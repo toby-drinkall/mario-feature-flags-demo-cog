@@ -103,84 +103,47 @@ Let me show you the stats:
 
 **Key insight:** Recovery requires Devin to understand git history and PR structure - it's not just 'paste code back', it's intelligently reversing a previous automation."
 
-## 🔵 Replace Button Demo - The Complex Case (1.5 minutes)
+## 🔵 Replace Button Demo - The Complex Case (1 minute)
 
 ### Click Replace on "jumpmod"
-"Now for the **most complex automation** - Replace combines removal, recovery mechanisms, AND writing new code across interdependent files.
+"Now for the **most complex automation** - Replace is fundamentally different from Remove and Recover.
 
 **Replace Modal shows 3 inputs:**
 1. **Current flag name:** jumpmod
 2. **New flag name:** jumpmod_v2 (Tab auto-fills '_v2')
 3. **Instruction:** 'Current value: 1.056. Note: lower = jump higher. Set to 0.528 for 2x jump height'
 
-**The Challenge**: jumpmod isn't just in one file - it's a **physics constant that flows through the entire game engine**. Devin must understand the dependency graph:
+**What makes Replace different:**
 
-**Step 1: Discovery Phase**
-Devin searches the entire codebase and finds jumpmod referenced in 5 files:
-1. **Source/settings/objects.js** (LINE 230) - **THE SOURCE OF TRUTH**
-   - Defines: `"jumpmod": 1.056`
-   - This is where the constant is born
-2. **Source/settings/math.ts** (LINE 12) - **THE CALCULATION ENGINE**
-   - Uses: `player.FSM.MapScreener.jumpmod`
-   - Calculates Mario's jump velocity using this constant
-3. **Source/settings/math.js** (LINE 31) - **THE COMPILED VERSION**
-   - JavaScript version of the TypeScript calculation
-   - Must match math.ts exactly or game breaks
-4. **Source/settings/maps.js** (LINE 12) - **THE MAP PHYSICS**
-   - References jumpmod to apply gravity to maps
-   - Each map uses this constant for consistent physics
-5. **Source/FullScreenMario.d.ts** (LINE 7) - **THE TYPE DEFINITION**
-   - Declares: `jumpmod: number;`
-   - TypeScript needs this to compile
+**Remove & Recover = Code Deletion/Restoration**
+- Remove: Delete 1 file worth of code
+- Recover: Restore from backup
 
-**The Dependency Chain:**
-```
-objects.js DEFINES jumpmod
-    ↓
-math.ts/js CALCULATE with jumpmod
-    ↓
-maps.js APPLIES jumpmod to game levels
-    ↓
-.d.ts TYPES jumpmod for TypeScript compiler
-```
+**Replace = Code Deletion + NEW Code Creation + Multi-File Coordination**
 
-**Why this is technically complex:**
-- If Devin only changes **objects.js**, math.ts crashes with `undefined is not a number`
-- If Devin only changes **objects.js + math.ts**, the compiled math.js is out of sync
-- If Devin only changes **3 of 5 files**, TypeScript won't compile
-- The files are **named differently** and located in **different directories** - Devin must trace the references programmatically
+Here's the complexity: jumpmod is a physics constant referenced in **5 interdependent files**:
+- objects.js (defines the constant)
+- math.ts (calculates jump velocity)
+- math.js (compiled JavaScript version)
+- maps.js (applies to game levels)
+- FullScreenMario.d.ts (TypeScript type definition)
 
-**Step 2: Atomic Replacement**
-Devin performs all changes as ONE atomic operation:
-1. **Remove jumpmod completely** from all 5 files (deletion phase)
-2. **Add jumpmod_v2 = 0.528** to objects.js (creation phase)
-3. **Update all 4 consuming files** to reference jumpmod_v2 instead (migration phase)
-4. **Verify TypeScript compiles** with the new constant name
-5. **Verify JavaScript has matching logic** (no desync between .ts and .js)
+**What Devin does:**
+1. **Finds all 5 files** containing jumpmod (different names, different directories)
+2. **Removes jumpmod completely** from all 5 files
+3. **Writes NEW CODE**: Adds jumpmod_v2 = 0.528 to all 5 files
+4. **Migrates all references** - updates every place the old constant was used
+5. **Verifies compilation** - TypeScript must compile, .ts and .js must match
+6. **Tests the new behavior** - Agent plays game and measures Mario now jumps 2x higher
+7. **Creates atomic PR** - All 5 files change together, or none change (prevents crashes)
 
-**Step 3: Validation**
-- Runs all 47 tests
-- **Game Interaction Test**: Agent verifies Mario jumps exactly 2x higher by:
-  * Spawning game with OLD code (baseline measurement)
-  * Spawning game with NEW code (comparison measurement)
-  * Measuring pixel distance of jumps (proves 2x height mathematically)
-  * Confirming Mario can now reach platforms that were previously unreachable
-  * Screenshot proof of both states
-- If ANY file is wrong, the entire replacement is rolled back
+**Why this matters for gameplay:**
+- Remove/Recover don't change how the game works - they just turn features on/off
+- **Replace changes the game mechanics** - Mario jumps higher, runs faster, falls slower
+- This lets you iterate on game physics without manual coding
+- Devin writes the new code AND updates all dependencies automatically
 
-**Step 4: Atomic PR**
-- Creates PR with all 5 files changed together
-- PR title: 'Replace jumpmod with jumpmod_v2'
-- **If the PR is rejected, no files change** - atomic transaction
-
-**Why this matters:**
-- Remove = 1 file, pure deletion
-- Recover = 1 file, restore from backup
-- **Replace = 5 interdependent files, remove old + create new + migrate references**
-- Devin must understand: code structure, dependency graph, type systems, compilation
-- This demonstrates AI can handle **enterprise-level refactoring** autonomously
-
-**Critical bug I fixed:** Devin was creating PRs to wrong branch (experiment/enhanced-jump-physics instead of cognition-dashboard-devin-integration). I fixed this by making the base branch instruction CRITICAL and repeating it 3 times in the prompt - this shows even AI needs explicit constraints for complex workflows."
+**The result:** Players can now jump to previously unreachable platforms - the game experience fundamentally changed through automation."
 
 ## 🔄 GitHub Sync System (30 seconds)
 
