@@ -535,9 +535,9 @@
         // Feature Flags data - actual features from the codebase
         const featureFlagsData = [
             {
-                name: "jumpmod",
-                displayName: "jumpmod",
-                description: "Physics constant (1.056) controlling Mario's jump height (lower = jump higher)",
+                name: "jumpmod_v2",
+                displayName: "jumpmod_v2",
+                description: "Physics constant (0.528) controlling Mario's jump height - 2x higher jump (lower = jump higher)",
                 file: "Source/settings/objects.js",
                 lineStart: 230,
                 lineEnd: 230,
@@ -551,7 +551,7 @@
                     { file: "Source/FullScreenMario.d.ts", lineStart: 7, lineEnd: 7, lines: 1 }
                 ],
                 enabled: true, // Currently active in the codebase
-                currentValue: "1.056"
+                currentValue: "0.528"
             },
             {
                 name: "gravity",
