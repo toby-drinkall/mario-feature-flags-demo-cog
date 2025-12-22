@@ -492,9 +492,8 @@
         console.log('🔄 Loading correct state from GitHub...');
         localStorage.clear();
 
-        // 3 features removed (no recovery yet)
+        // 2 features removed (no recovery yet)
         const removed = [
-            { name: 'Tilt Gravity', prNumber: 13, removedAt: Date.now() - 86400000, lines: 42, category: 'movement', file: 'Source/settings/mods.js', lineStart: 509, lineEnd: 550 },
             { name: 'Hard Mode', prNumber: 26, removedAt: Date.now() - 43200000, lines: 92, category: 'gameplay', file: 'Source/settings/mods.js', lineStart: 273, lineEnd: 364 },
             { name: 'Super Fireballs', prNumber: 27, removedAt: Date.now() - 21600000, lines: 17, category: 'gameplay', file: 'Source/settings/mods.js', lineStart: 366, lineEnd: 382 }
         ];
@@ -506,9 +505,9 @@
 
         console.log('✅ Correct state loaded:');
         console.log('  - 12 Active features');
-        console.log('  - 4 Removed (Tilt Gravity, Hard Mode, Super Fireballs, Trip of Acid)');
+        console.log('  - 3 Removed (Hard Mode, Super Fireballs, Trip of Acid)');
         console.log('  - 0 Pending operations');
-        console.log('  TOTAL: 16 features');
+        console.log('  TOTAL: 15 features');
     </script>
 
     <div id="root"></div>
@@ -1617,21 +1616,6 @@
             const [removedFeatures, setRemovedFeatures] = useState(() => {
                 const stored = localStorage.getItem('removed_features');
                 const parsed = stored ? JSON.parse(stored) : [];
-
-                // Ensure Tilt Gravity is in removed features (it doesn't have a PR)
-                const hasTiltGravity = parsed.find(f => f.name === 'Tilt Gravity');
-                if (!hasTiltGravity) {
-                    parsed.push({
-                        name: 'Tilt Gravity',
-                        description: 'Device motion controls gravity.',
-                        file: 'Source/settings/mods.js',
-                        lineStart: 509,
-                        lineEnd: 550,
-                        lines: 42,
-                        category: 'movement',
-                        removedAt: Date.now()
-                    });
-                }
                 return parsed;
             });
             const [enabledFeatures, setEnabledFeatures] = useState(() => {
@@ -1645,9 +1629,7 @@
             const [pendingRestoration, setPendingRestoration] = useState(() => {
                 const stored = localStorage.getItem('pending_restoration');
                 const parsed = stored ? JSON.parse(stored) : [];
-
-                // Remove Tilt Gravity from pending restoration if it exists
-                return parsed.filter(f => f.name !== 'Tilt Gravity');
+                return parsed;
             });
             const [activeModal, setActiveModal] = useState(null);
             const [activeTab, setActiveTab] = useState('testing'); // 'testing' or 'flags'
