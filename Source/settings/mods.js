@@ -2,38 +2,6 @@ FullScreenMario.FullScreenMario.settings.mods = {
     "storeLocally": true,
     "mods": [
         {
-            "name": "Bouncy Bounce",
-            "description": "Mario landing causes him to jump.",
-            "author": {
-                "name": "Josh Goldberg",
-                "email": "josh@fullscreenmario.com"
-            },
-            "enabled": false,
-            "events": {
-                "onPlayerLanding": function (mod) {
-                    var player = this.player;
-                    
-                    // Don't trigger during cutscenes or small landings
-                    if (
-                        player.FSM.MapScreener.nokeys
-                        || Math.abs(player.yvel) < player.FSM.unitsize / 4
-                    ) {
-                        return;
-                    }
-                    
-                    if (player.resting.actionTop) {
-                        player.resting.actionTop(player, player.resting);
-                    }
-                    
-                    player.jumpcount = 0;
-                    player.resting = undefined;
-                    player.yvel = -3 * player.FSM.unitsize;
-                },
-                "onPlayerActionLeft": function (mod, player, other) {
-                    other.actionLeft(player, other, true);
-                }
-            },
-        }, {
             "name": "Earthquake!",
             "description": "Mario landing causes everything else to jump.",
             "author": {
