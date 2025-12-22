@@ -317,7 +317,7 @@ Original FullScreenMario game by Josh Goldberg
 
 **Original Game**: [FullScreenMario](https://github.com/FullScreenShenanigans/FullScreenMario) by Josh Goldberg
 
-**Dashboard & Feature Flag System**: Built for Cognition's Devin integration demo
+**Dashboard & Feature Flag System**: Demonstration of automated feature management with Devin API integration
 
 **Technologies**:
 - React, Tailwind CSS, Framer Motion
