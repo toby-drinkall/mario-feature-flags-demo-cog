@@ -290,6 +290,16 @@ New constant: ${newFlagName}
 User instruction: ${instruction}
 Files affected: ${feature.filesAffected.length} files
 
+IMPORTANT PHYSICS RELATIONSHIP:
+This is a physics constant where LOWER value = HIGHER jump.
+- Current: ${oldFlagName} = ${feature.currentValue || 'unknown'}
+- Inverse relationship: To make Mario jump TWICE as high, DIVIDE the value by 2
+- Example: If user says "jump twice as high", calculate: ${feature.currentValue || 'unknown'} / 2
+- Example: If user says "jump half as high", calculate: ${feature.currentValue || 'unknown'} * 2
+
+You must CALCULATE the new value based on the user's instruction and this inverse relationship.
+Do NOT just copy the old value. INTUIT what the new value should be from: "${instruction}"
+
 CRITICAL PROGRESS TRACKING REQUIREMENT:
 You MUST use your "send message to user" action after COMPLETING each step below. This allows real-time tracking on the dashboard. Do NOT batch multiple steps - send ONE message per completed step.
 
@@ -315,9 +325,11 @@ Task Steps (send a message after EACH):
 
 4. Add New Constant
    - ADD ${newFlagName} definition to ${feature.file}
-   - Calculate new value to implement: "${instruction}"
+   - CALCULATE new value using the inverse relationship (lower = higher jump)
+   - For instruction "${instruction}", intuit the correct calculation based on physics
+   - Remember: ${oldFlagName} was ${feature.currentValue || 'unknown'}, and lower value = higher jump
    - This is a NEW constant, not a rename
-   Send message: "Step 4 complete: Added ${newFlagName} with new value"
+   Send message: "Step 4 complete: Added ${newFlagName} with calculated value [show the value]"
 
 5. Update All Code References
    - Update all code that previously used ${oldFlagName} to now use ${newFlagName}
