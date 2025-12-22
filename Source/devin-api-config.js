@@ -246,7 +246,7 @@ IMPORTANT: This is the repository: ${this.config.repository}
 
 1. **Clone and Setup**
    - Clone the repository: ${this.config.repository}
-   - Checkout the master branch
+   - Checkout the cognition-dashboard-devin-integration branch
 
 2. **Locate the Feature**
    - Open ${feature.file}
@@ -271,7 +271,7 @@ IMPORTANT: This is the repository: ${this.config.repository}
    - Create branch: remove-${feature.name.toLowerCase().replace(/\s+/g, '-')}
    - Commit with message: "Remove ${feature.name} feature flag"
    - Push the branch
-   - Create a Pull Request to master with title: "Remove ${feature.name} feature flag"
+   - Create a Pull Request to cognition-dashboard-devin-integration with title: "Remove ${feature.name} feature flag"
 
 7. **Report Results**
    - Provide the PR URL when complete
@@ -322,7 +322,7 @@ IMPORTANT: This is the repository: ${this.config.repository}
 
 1. **Clone and Setup**
    - Clone the repository: ${this.config.repository}
-   - Checkout the master branch
+   - Checkout the cognition-dashboard-devin-integration branch
 
 2. **Find the Backup**
    - Look in the backups/ directory for a file matching: removed-${feature.name.toLowerCase().replace(/\s+/g, '-')}-*.json
@@ -342,7 +342,7 @@ IMPORTANT: This is the repository: ${this.config.repository}
    - Create branch: recover-${feature.name.toLowerCase().replace(/\s+/g, '-')}
    - Commit with message: "Recover ${feature.name} feature flag (reverts PR #${removalPR})"
    - Push the branch
-   - Create a Pull Request to master
+   - Create a Pull Request to cognition-dashboard-devin-integration
 
 6. **Report Results**
    - Provide the PR URL when complete
@@ -395,7 +395,7 @@ Make this feature always active by integrating its behavior into the core game, 
 
 1. **Clone and Setup**
    - Clone the repository: ${this.config.repository}
-   - Checkout the master branch
+   - Checkout the cognition-dashboard-devin-integration branch
 
 2. **Analyze the Feature**
    - Open ${feature.file}
@@ -420,7 +420,7 @@ Make this feature always active by integrating its behavior into the core game, 
    - Create branch: enable-${feature.name.toLowerCase().replace(/\s+/g, '-')}
    - Commit with message: "Enable ${feature.name} permanently"
    - Push the branch
-   - Create a Pull Request to master
+   - Create a Pull Request to cognition-dashboard-devin-integration
 
 7. **Report Results**
    - Provide the PR URL when complete
