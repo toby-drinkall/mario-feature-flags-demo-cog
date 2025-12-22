@@ -4,7 +4,7 @@ declare module FullScreenMario {
         canscroll: boolean;
         floor: number;
         gravity: number;
-        jumpmod: number;
+        jumpmod_v2: number;
         lakitu?: ILakitu;
         maxyvel: number;
         maxyvelinv: number;
