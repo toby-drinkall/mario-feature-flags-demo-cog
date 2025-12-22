@@ -1012,7 +1012,14 @@
                             }
 
                             // Update status badge
-                            setDevinStatus(status.status_enum || status.status || 'working');
+                            const sessionStatus = status.status_enum || status.status || 'working';
+                            setDevinStatus(sessionStatus);
+
+                            // Check if session is actually completed
+                            if (sessionStatus === 'completed' || sessionStatus === 'finished') {
+                                console.log(`🎉 Session ${sessionStatus} → marking all steps complete`);
+                                nextActiveStep = Math.max(nextActiveStep, steps.length);
+                            }
 
                             // Check for PR URL
                             if (status.pull_request && status.pull_request.url) {
@@ -1093,8 +1100,10 @@
                                     console.log(`   ✓ Step 7 complete → advancing to step 8`);
                                 }
                                 else if (msg.includes('step 8 complete')) {
-                                    nextActiveStep = Math.max(nextActiveStep, steps.length);
-                                    console.log(`   ✓ Step 8 complete → all steps done!`);
+                                    // Keep step 8 active (don't advance to complete yet)
+                                    // Wait for session status to be 'completed' before marking done
+                                    nextActiveStep = Math.max(nextActiveStep, 8);
+                                    console.log(`   ✓ Step 8 complete message received → keeping step 8 active until session completes`);
                                 }
                             });
 
@@ -1124,15 +1133,16 @@
 
                             // Wait for progress callback to process all steps
                             // Only mark complete if progress callback hasn't already done so
+                            // Extended timeout since we wait for session status 'completed'
                             setTimeout(() => {
                                 setCurrentStep(prev => {
                                     if (prev < steps.length) {
-                                        console.log('⚠️ Progress callback didn\'t reach final step, marking complete now');
+                                        console.log('⚠️ Timeout reached - forcing completion (session may have finished without status update)');
                                         return steps.length;
                                     }
                                     return prev;
                                 });
-                            }, 2000); // Wait 2 seconds for progress callbacks to complete
+                            }, 10000); // Wait 10 seconds for Devin to send 'completed' status
                         } else if (type === 'replace-flag') {
                             // Call real Devin API to replace feature flag
                             const result = await window.DevinAPI.replaceFeatureFlag(
@@ -1222,15 +1232,16 @@
 
                             // Wait for progress callback to process all steps
                             // Only mark complete if progress callback hasn't already done so
+                            // Extended timeout since we wait for session status 'completed'
                             setTimeout(() => {
                                 setCurrentStep(prev => {
                                     if (prev < steps.length) {
-                                        console.log('⚠️ Progress callback didn\'t reach final step, marking complete now');
+                                        console.log('⚠️ Timeout reached - forcing completion (session may have finished without status update)');
                                         return steps.length;
                                     }
                                     return prev;
                                 });
-                            }, 2000); // Wait 2 seconds for progress callbacks to complete
+                            }, 10000); // Wait 10 seconds for Devin to send 'completed' status
                         }
                     } catch (err) {
                         console.error('Devin API error:', err);
