@@ -1953,6 +1953,44 @@
                         }
                     });
 
+                    // Also mark flags for deletion if their original was restored
+                    // (handles case where recovery PR merged to wrong branch and GitHub sync missed it)
+                    featureStates.forEach((data, featureName) => {
+                        if (data.state === 'removed' && data.replacedBy) {
+                            // This flag was replaced, check if there's an active restoration
+                            featureStates.forEach((restoreData, restoreFeatureName) => {
+                                if (restoreFeatureName === featureName && restoreData.state === undefined) {
+                                    // Original is back - mark replacement for deletion
+                                    if (!flagsMarkedForDeletion.includes(data.replacedBy)) {
+                                        console.log(`🔄 ${featureName} is back - marking ${data.replacedBy} for deletion`);
+                                        flagsMarkedForDeletion.push(data.replacedBy);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    // Additionally, if a hardcoded flag is active, remove any dynamic versions with the same base name
+                    featureFlagsData.forEach(hardcodedFlag => {
+                        const baseName = hardcodedFlag.name;
+                        // Check if this hardcoded flag should be active (not removed, not pending)
+                        const shouldBeActive = !featureStates.has(baseName) ||
+                                              (featureStates.get(baseName)?.state !== 'removed' &&
+                                               featureStates.get(baseName)?.state !== 'pending_removal');
+
+                        if (shouldBeActive) {
+                            // Remove any v2/v3/etc versions from newFeatureFlags
+                            newlyCreatedFlags.forEach(newFlag => {
+                                if (newFlag.name.startsWith(baseName + '_v') || newFlag.replacedFrom === baseName) {
+                                    if (!flagsMarkedForDeletion.includes(newFlag.name)) {
+                                        console.log(`🔄 ${baseName} is active - removing replacement ${newFlag.name}`);
+                                        flagsMarkedForDeletion.push(newFlag.name);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
                     // Merge with existing new flags and deduplicate by name
                     const allNewFlags = [...newFeatureFlags, ...newlyCreatedFlags];
                     const uniqueNewFlags = allNewFlags
