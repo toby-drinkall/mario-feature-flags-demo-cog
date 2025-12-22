@@ -561,6 +561,17 @@
             { id: 'complete', label: 'Finalizing automation', duration: 800 }
         ];
 
+        const replacementSteps = [
+            { id: 'analyze', label: 'Analyzing codebase', duration: 1000 },
+            { id: 'backup', label: 'Creating backups', duration: 800 },
+            { id: 'remove_dead_code', label: 'Removing dead code', duration: 1200 },
+            { id: 'rename', label: 'Renaming constant', duration: 2000 },
+            { id: 'update_value', label: 'Updating constant value', duration: 1000 },
+            { id: 'test', label: 'Running tests', duration: 3500 },
+            { id: 'pr', label: 'Creating atomic PR', duration: 1500 },
+            { id: 'complete', label: 'Finalizing automation', duration: 800 }
+        ];
+
         const recoverySteps = [
             { id: 'init', label: 'Initializing Devin session', duration: 800 },
             { id: 'load', label: 'Loading feature backup', duration: 1000 },
@@ -810,9 +821,16 @@
             const [devinStatus, setDevinStatus] = useState('');
             const [startTime, setStartTime] = useState(null);
             const [cancelledAtStep, setCancelledAtStep] = useState(null);
+
+            // Replacement modal state
+            const [oldFlagName, setOldFlagName] = useState(feature.name || '');
+            const [newFlagName, setNewFlagName] = useState('');
+            const [instruction, setInstruction] = useState('');
+
             const steps = type === 'remove' ? removalSteps :
                          type === 'enable' ? enableSteps :
                          type === 'return-to-staging' ? returnToStagingSteps :
+                         type === 'replace-flag' ? replacementSteps :
                          recoverySteps;
 
             useEffect(() => {
@@ -1089,6 +1107,111 @@
 
             const isComplete = currentStep >= steps.length;
             const apiConfigured = isDevinAPIConfigured();
+
+            // Special modal for feature flag replacement
+            if (currentStep === -1 && type === 'replace-flag') {
+                return (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 fade-in">
+                        <div className="glass-card rounded-3xl max-w-lg w-full mx-4 p-6">
+                            <h2 className="text-xl font-semibold text-primary mb-4">
+                                Replace Feature Flag "{feature.displayName || feature.name}"
+                            </h2>
+
+                            {error && (
+                                <div className="mb-4 p-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+                                    <div className="flex items-start gap-2">
+                                        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                        <div>
+                                            <div className="font-semibold mb-1">Error</div>
+                                            <div>{error}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={`mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                                apiConfigured
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}>
+                                <div className={`w-2 h-2 rounded-full ${apiConfigured ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                                {apiConfigured ? 'Real Devin API configured' : 'Running in simulation mode'}
+                            </div>
+
+                            {/* Input Fields */}
+                            <div className="space-y-3 mb-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-secondary mb-1.5">Current Feature Flag Name</label>
+                                    <input
+                                        type="text"
+                                        value={oldFlagName}
+                                        onChange={(e) => setOldFlagName(e.target.value)}
+                                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all"
+                                        placeholder="e.g., useEnhancedJumpPhysics"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-secondary mb-1.5">New Feature Flag Name</label>
+                                    <input
+                                        type="text"
+                                        value={newFlagName}
+                                        onChange={(e) => setNewFlagName(e.target.value)}
+                                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all"
+                                        placeholder="e.g., useEnhancedJumpPhysics_v2"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-secondary mb-1.5">Instruction (What should the new version do?)</label>
+                                    <textarea
+                                        value={instruction}
+                                        onChange={(e) => setInstruction(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all resize-none"
+                                        placeholder="Describe what changes should be made..."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Summary */}
+                            <div className="space-y-2 mb-6">
+                                <p className="text-xs text-tertiary mb-3">Devin will execute:</p>
+                                <div className="flex items-start gap-2 text-xs text-secondary">
+                                    <div className="w-1 h-1 rounded-full bg-purple-400 mt-1.5" />
+                                    <div>Rename <span className="text-purple-400">{oldFlagName || 'feature flag'}</span> → <span className="text-purple-400">{newFlagName || 'new name'}</span></div>
+                                </div>
+                                <div className="flex items-start gap-2 text-xs text-secondary">
+                                    <div className="w-1 h-1 rounded-full bg-purple-400 mt-1.5" />
+                                    <div>Update implementation: {instruction || 'as described'}</div>
+                                </div>
+                                <div className="flex items-start gap-2 text-xs text-secondary">
+                                    <div className="w-1 h-1 rounded-full bg-purple-400 mt-1.5" />
+                                    <div>Run tests and create atomic PR</div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={onCancel}
+                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 light:bg-slate-100 light:hover:bg-slate-200 rounded-xl transition-all border border-white/10 dark:border-white/10 light:border-slate-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={startAutomation}
+                                    disabled={!oldFlagName || !newFlagName || !instruction}
+                                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg"
+                                >
+                                    Start Replacement
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
 
             if (currentStep === -1) {
                 return (
@@ -2235,7 +2358,7 @@
                                             <FeatureFlagCard
                                                 key={flag.name}
                                                 feature={flag}
-                                                onRemove={(f) => setActiveModal({ type: 'remove-flag', feature: f })}
+                                                onRemove={(f) => setActiveModal({ type: 'replace-flag', feature: f })}
                                             />
                                         ))
                                     }
