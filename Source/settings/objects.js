@@ -227,7 +227,7 @@ FullScreenMario.FullScreenMario.settings.objects = {
             "onMake": FullScreenMario.FullScreenMario.prototype.initializeArea,
             "setBackground": FullScreenMario.FullScreenMario.prototype.setAreaBackground,
             "floor": 104,
-            "jumpmod_v2": 0.528,
+            "jumpmod": 1.056,
             "maxyvel": FullScreenMario.FullScreenMario.unitsize * 2,
             "maxyvelinv": FullScreenMario.FullScreenMario.unitsize * -3.5,
             "onPlayerDeathTimeout": 280,

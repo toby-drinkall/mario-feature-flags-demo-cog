@@ -30,12 +30,6 @@ document.onreadystatechange = function (event) {
                 if (window.FSM.MapScreener.jumpmod !== undefined) {
                     activeFlag = 'jumpmod';
                     expectedValue = 1.056;
-                } else if (window.FSM.MapScreener.jumpmod_v2 !== undefined) {
-                    activeFlag = 'jumpmod_v2';
-                    expectedValue = 0.528;
-                } else if (window.FSM.MapScreener.jumpmod_v3 !== undefined) {
-                    activeFlag = 'jumpmod_v3';
-                    expectedValue = null; // Unknown, will show actual value
                 }
 
                 if (activeFlag) {
@@ -55,7 +49,7 @@ document.onreadystatechange = function (event) {
                         (isCorrect !== null ? 'Status: ' + (isCorrect ? '✓ CORRECT' : '✗ WRONG') : 'Status: Active');
                     document.body.appendChild(debugDiv);
                 } else {
-                    console.warn('⚠️ No jump physics constant found (jumpmod, jumpmod_v2, jumpmod_v3)');
+                    console.warn('⚠️ No jump physics constant found (jumpmod)');
                 }
             }
 
