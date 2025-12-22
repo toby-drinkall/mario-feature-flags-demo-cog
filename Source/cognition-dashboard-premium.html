@@ -732,7 +732,15 @@
                             </span>
                         </div>
                         <p className="text-xs text-secondary truncate">{feature.description}</p>
-                        <div className="text-[10px] text-tertiary mt-1">{feature.lines} lines</div>
+                        <div className="flex items-center gap-3 mt-1 text-[10px] text-tertiary">
+                            <span>{feature.lines} lines</span>
+                            {enabled && (
+                                <>
+                                    <span>•</span>
+                                    <span className="text-emerald-400">Currently Enabled</span>
+                                </>
+                            )}
+                        </div>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                         <div
