@@ -1,13 +1,15 @@
 # 5-Minute Loom Video Script: Devin-Powered Feature Flag Automation
 
 ## 🎯 Overview (30 seconds)
-"Welcome! Today I'm demonstrating an automated feature flag management system I built that uses Devin AI to manage code changes in a Mario Bros game. This dashboard lets me remove, recover, and replace feature flags with zero manual coding - Devin creates atomic pull requests, runs tests, and deploys changes automatically."
+"Welcome! Today I'm demonstrating an automated feature flag management system I built that uses Devin AI to manage code changes in a Mario Bros game. This dashboard lets me remove, recover, and replace feature flags with zero manual coding - Devin creates atomic pull requests, runs tests, and deploys changes automatically.
+
+What's impressive is the **Replace** operation - Devin must understand code dependencies across 5 different files, remove old code, write new code, migrate all references, and verify the changes work by actually playing the game. This is enterprise-level refactoring done autonomously."
 
 ## 🏗️ Architecture Overview (1 minute)
 
 ### The Stack
 "Let me show you the tech stack:
-- **Frontend**: React dashboard with real-time game control
+- **Frontend**: Pure React (no framework) with Tailwind CSS and Framer Motion
 - **Backend**: Express.js server hosting from Source/ directory
 - **AI Integration**: Devin API for automated code modifications
 - **Git Workflow**: Atomic PRs to cognition-dashboard-devin-integration branch
@@ -64,7 +66,7 @@ Let me show you the stats:
 4. 'Check Merge' button becomes available
 
 **What Devin does behind the scenes:**
-- Reads Source/settings/mods.js
+- Reads Source/settings/mods.js (single file)
 - Deletes lines 5-35 (the mod definition)
 - Runs the test suite: `grunt mocha_phantomjs` (47 tests total)
   * **3 Constructor Tests**: Verifies game initializes with small, large, and tiny screen sizes
@@ -80,54 +82,105 @@ Let me show you the stats:
 - Pushes to GitHub
 - Creates PR with description, test results, and game interaction screenshots
 
-**Technical decision:** Why not auto-merge? I want human review before production deployment. The 'Check Merge' button lets me confirm the PR was merged on GitHub, then automatically moves the feature to 'Removed' state after 1.5 seconds."
+**This is straightforward** - single file, pure deletion, no dependencies."
 
-## 🔵 Replace Button Demo (45 seconds)
+## 🟢 Recover Button Demo (45 seconds)
+
+### Click Restore on removed feature
+"Recovery adds complexity - Devin must reverse the removal:
+
+**What Devin does:**
+1. **Loads backup JSON** from removal step (contains exact code that was deleted)
+2. **Analyzes removal PR** on GitHub to understand:
+   - Which files were modified
+   - Which lines were deleted
+   - What the original state was
+3. **Restores exact original code** to all affected files
+4. Runs all 47 tests to verify game still works
+5. **Game Interaction Test**: Agent plays the game to confirm feature is back
+6. Creates recovery branch: `recover-bouncy-bounce`
+7. Creates PR: 'Recover Bouncy Bounce feature flag'
+
+**Key insight:** Recovery requires Devin to understand git history and PR structure - it's not just 'paste code back', it's intelligently reversing a previous automation."
+
+## 🔵 Replace Button Demo - The Complex Case (1.5 minutes)
 
 ### Click Replace on "jumpmod"
-"Feature flag replacement is more complex:
+"Now for the **most complex automation** - Replace combines removal, recovery mechanisms, AND writing new code across interdependent files.
 
 **Replace Modal shows 3 inputs:**
 1. **Current flag name:** jumpmod
 2. **New flag name:** jumpmod_v2 (Tab auto-fills '_v2')
 3. **Instruction:** 'Current value: 1.056. Note: lower = jump higher. Set to 0.528 for 2x jump height'
 
-**What Devin does:**
-1. Finds jumpmod = 1.056 in 5 files (objects.js, math.ts, math.js, maps.js, FullScreenMario.d.ts)
-2. **Removes jumpmod completely** from all 5 files
-3. **Adds jumpmod_v2 = 0.528** with new behavior (half the value = double jump height)
-4. Updates all references (Source/settings/math.ts, math.js)
-5. Runs all 47 tests to verify game still works
-6. **Game Interaction Test**: Agent verifies Mario jumps exactly 2x higher by:
-   * Measuring pixel distance of normal jump vs. new jump
-   * Confirming Mario can now reach higher platforms
-   * Screenshot proof of increased jump height
-7. Creates atomic PR with all 5 files changed together
-8. PR title: 'Replace jumpmod with jumpmod_v2'
+**The Challenge**: jumpmod isn't just in one file - it's a **physics constant that flows through the entire game engine**. Devin must understand the dependency graph:
 
-**Why atomic?** If only 3 of 5 files changed, the game would crash with "jumpmod is undefined". Devin ensures all-or-nothing deployment - either all 5 files change together, or none do.
+**Step 1: Discovery Phase**
+Devin searches the entire codebase and finds jumpmod referenced in 5 files:
+1. **Source/settings/objects.js** (LINE 230) - **THE SOURCE OF TRUTH**
+   - Defines: `"jumpmod": 1.056`
+   - This is where the constant is born
+2. **Source/settings/math.ts** (LINE 12) - **THE CALCULATION ENGINE**
+   - Uses: `player.FSM.MapScreener.jumpmod`
+   - Calculates Mario's jump velocity using this constant
+3. **Source/settings/math.js** (LINE 31) - **THE COMPILED VERSION**
+   - JavaScript version of the TypeScript calculation
+   - Must match math.ts exactly or game breaks
+4. **Source/settings/maps.js** (LINE 12) - **THE MAP PHYSICS**
+   - References jumpmod to apply gravity to maps
+   - Each map uses this constant for consistent physics
+5. **Source/FullScreenMario.d.ts** (LINE 7) - **THE TYPE DEFINITION**
+   - Declares: `jumpmod: number;`
+   - TypeScript needs this to compile
 
-**Critical bug I fixed:** Devin was creating PRs to wrong branch (experiment/enhanced-jump-physics instead of cognition-dashboard-devin-integration). I fixed this by making the base branch instruction CRITICAL and repeating it 3 times in the prompt."
+**The Dependency Chain:**
+```
+objects.js DEFINES jumpmod
+    ↓
+math.ts/js CALCULATE with jumpmod
+    ↓
+maps.js APPLIES jumpmod to game levels
+    ↓
+.d.ts TYPES jumpmod for TypeScript compiler
+```
 
-## 🟢 Recover Button Demo (30 seconds)
+**Why this is technically complex:**
+- If Devin only changes **objects.js**, math.ts crashes with `undefined is not a number`
+- If Devin only changes **objects.js + math.ts**, the compiled math.js is out of sync
+- If Devin only changes **3 of 5 files**, TypeScript won't compile
+- The files are **named differently** and located in **different directories** - Devin must trace the references programmatically
 
-### Click Restore on removed feature
-"Recovery reverses a removal:
+**Step 2: Atomic Replacement**
+Devin performs all changes as ONE atomic operation:
+1. **Remove jumpmod completely** from all 5 files (deletion phase)
+2. **Add jumpmod_v2 = 0.528** to objects.js (creation phase)
+3. **Update all 4 consuming files** to reference jumpmod_v2 instead (migration phase)
+4. **Verify TypeScript compiles** with the new constant name
+5. **Verify JavaScript has matching logic** (no desync between .ts and .js)
 
-**What Devin does:**
-1. Loads backup JSON from removal step
-2. Analyzes removal PR to understand what changed
-3. Restores exact original code to all files
-4. Runs tests to verify game still works
-5. Creates recovery branch: `recover-bouncy-bounce`
-6. Creates PR: 'Recover Bouncy Bounce feature flag'
+**Step 3: Validation**
+- Runs all 47 tests
+- **Game Interaction Test**: Agent verifies Mario jumps exactly 2x higher by:
+  * Spawning game with OLD code (baseline measurement)
+  * Spawning game with NEW code (comparison measurement)
+  * Measuring pixel distance of jumps (proves 2x height mathematically)
+  * Confirming Mario can now reach platforms that were previously unreachable
+  * Screenshot proof of both states
+- If ANY file is wrong, the entire replacement is rolled back
 
-**Special case - Recovering replaced flags:**
-If I recover jumpmod (which was replaced by jumpmod_v2):
-- Devin removes jumpmod_v2 completely (not tracked in dashboard)
-- Restores jumpmod = 1.056
-- Updates all references back to original
-This handles the versioning automatically."
+**Step 4: Atomic PR**
+- Creates PR with all 5 files changed together
+- PR title: 'Replace jumpmod with jumpmod_v2'
+- **If the PR is rejected, no files change** - atomic transaction
+
+**Why this matters:**
+- Remove = 1 file, pure deletion
+- Recover = 1 file, restore from backup
+- **Replace = 5 interdependent files, remove old + create new + migrate references**
+- Devin must understand: code structure, dependency graph, type systems, compilation
+- This demonstrates AI can handle **enterprise-level refactoring** autonomously
+
+**Critical bug I fixed:** Devin was creating PRs to wrong branch (experiment/enhanced-jump-physics instead of cognition-dashboard-devin-integration). I fixed this by making the base branch instruction CRITICAL and repeating it 3 times in the prompt - this shows even AI needs explicit constraints for complex workflows."
 
 ## 🔄 GitHub Sync System (30 seconds)
 
@@ -148,22 +201,25 @@ This handles the versioning automatically."
 ## 🎓 Technical Decisions Summary (30 seconds)
 
 ### Key Choices
-1. **React + localStorage** - Fast, survives reload, no database needed
-2. **Devin for automation** - Handles multi-file, test execution, git workflow
-3. **Atomic PRs** - All-or-nothing ensures game never breaks
+1. **Pure React + localStorage** - No framework overhead, fast, survives reload, no database needed
+2. **Devin for automation** - Handles multi-file coordination, test execution, git workflow
+3. **Atomic PRs** - All-or-nothing ensures game never breaks (critical for 5-file replacements)
 4. **47-test suite** - 3 constructor + 20 map + 24 mod tests verify code quality
 5. **Game interaction agent** - Devin spawns headless browser to actually play the game and verify changes work (not just unit tests!)
-6. **Human review** - No auto-merge, PRs need approval
-7. **GitHub as truth** - Dashboard syncs from GitHub, not the reverse
-8. **Branch isolation** - All automations target cognition-dashboard-devin-integration
-9. **Auto-complete merge** - After confirming PR merged, feature automatically moves to correct section (no manual sync)
+6. **Dependency graph analysis** - Devin must trace references across TypeScript, JavaScript, and definition files to perform replacements
+7. **Progressive complexity** - Remove (1 file) → Recover (1 file + git history) → Replace (5 interdependent files)
+8. **Human review** - No auto-merge, PRs need approval before production
+9. **GitHub as truth** - Dashboard syncs from GitHub API, not the reverse
+10. **Branch isolation** - All automations target cognition-dashboard-devin-integration
+11. **Auto-complete merge** - After confirming PR merged, feature automatically moves to correct section (no manual sync)
 
 ### What I'd improve
-- Add webhook listener instead of manual sync
-- Visual diff preview before remove/replace
-- Rollback button for merged changes
-- Feature flag impact analysis (show dependent code)
+- Add webhook listener instead of manual sync polling
+- Visual dependency graph before replace (show which files will change)
+- Rollback button for merged changes (one-click revert)
+- Feature flag impact analysis (preview affected code before changes)
 - Record video of game interaction test (not just screenshots)
+- Parallel test execution for faster feedback
 
 ## 🎬 Closing (15 seconds)
 "This system demonstrates AI-assisted development where:
