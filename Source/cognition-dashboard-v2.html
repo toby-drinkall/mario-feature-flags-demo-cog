@@ -557,18 +557,18 @@
         // Feature Flags data - actual features from the codebase
         const featureFlagsData = [
             {
-                name: "PHYSICS_JUMPMOD",
-                codeName: "jumpmod", // The actual constant name in the code
-                displayName: "Jump Height Modifier",
-                description: "Controls Mario's jump height (lower = higher jump)",
+                name: "PHYSICS_JUMPMOD_V2",
+                codeName: "jumpmod_v2", // The actual constant name in the code
+                displayName: "Jump Height Modifier v2",
+                description: "Controls Mario's jump height - 2x higher jump (lower = higher jump)",
                 file: "Source/settings/objects.js",
                 lineStart: 230,
                 lineEnd: 230,
                 lines: 1,
-                currentValue: 1.056,
+                currentValue: 0.528,
                 category: "physics",
                 filesAffected: [
-                    { file: "Source/settings/objects.js", line: 230, description: "jumpmod constant" },
+                    { file: "Source/settings/objects.js", line: 230, description: "jumpmod_v2 constant" },
                     { file: "Source/settings/math.js", lineStart: 30, lineEnd: 33, description: "jump calculation function" }
                 ],
                 enabled: true // Currently active in game
