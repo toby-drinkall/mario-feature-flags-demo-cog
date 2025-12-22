@@ -22,16 +22,16 @@ document.onreadystatechange = function (event) {
 
             // DEBUG: Verify jump physics constant loaded correctly
             if (window.FSM.MapScreener) {
-                console.log('🎮 MapScreener.jumpmod_v2 =', window.FSM.MapScreener.jumpmod_v2, '(should be 2.112)');
+                console.log('🎮 MapScreener.jumpmod =', window.FSM.MapScreener.jumpmod, '(should be 1.056)');
 
                 // Create visual indicator in game window
                 var debugDiv = document.createElement('div');
                 debugDiv.id = 'jump-physics-debug';
                 debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:rgba(0,0,0,0.9);color:#0f0;padding:15px;font-family:monospace;font-size:14px;z-index:99999;border:2px solid #0f0;border-radius:8px;';
                 debugDiv.innerHTML = '<strong>Jump Physics Debug</strong><br>' +
-                    'jumpmod_v2: ' + (window.FSM.MapScreener.jumpmod_v2 || 'UNDEFINED') + '<br>' +
-                    'Expected: 0.528<br>' +
-                    'Status: ' + (window.FSM.MapScreener.jumpmod_v2 === 0.528 ? '✓ CORRECT' : '✗ WRONG');
+                    'jumpmod: ' + (window.FSM.MapScreener.jumpmod || 'UNDEFINED') + '<br>' +
+                    'Expected: 1.056<br>' +
+                    'Status: ' + (window.FSM.MapScreener.jumpmod === 1.056 ? '✓ CORRECT' : '✗ WRONG');
                 document.body.appendChild(debugDiv);
 
                 // Auto-remove after 10 seconds
