@@ -9,7 +9,7 @@ FullScreenMario.FullScreenMario.settings.math = {
             constants: FullScreenMario.IMapScreenr,
             equations: MathDecidr.IEquationContainer,
             player: FullScreenMario.IPlayer): void {
-            var jumpmod: number = player.FSM.MapScreener.jumpmod - player.xvel * .0014,
+            var jumpmod: number = player.FSM.MapScreener.jumpmod_v2 - player.xvel * .0014,
                 power: number = Math.pow(player.keys.jumplev, jumpmod),
                 dy: number = player.FSM.unitsize / power;
 
