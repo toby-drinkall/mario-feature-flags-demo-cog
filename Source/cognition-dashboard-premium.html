@@ -2248,24 +2248,22 @@
                                     )}
                                 </div>
 
-                                {/* Separator - only show if there are removed feature flags */}
-                                {removedFeatureFlags.length > 0 && (
-                                    <div className="relative mb-4 mt-8">
-                                        <div className="absolute inset-0 flex items-center">
-                                            <div className="w-full border-t border-purple-500/30"></div>
-                                        </div>
-                                        <div className="relative flex justify-center">
-                                            <span className="px-4 text-sm font-medium text-purple-400 glass-card rounded-full py-1 border border-purple-500/30">
-                                                Removed Feature Flags
-                                            </span>
-                                        </div>
+                                {/* Separator - always show */}
+                                <div className="relative mb-4 mt-8">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-purple-500/30"></div>
                                     </div>
-                                )}
+                                    <div className="relative flex justify-center">
+                                        <span className="px-4 text-sm font-medium text-purple-400 glass-card rounded-full py-1 border border-purple-500/30">
+                                            Removed Feature Flags
+                                        </span>
+                                    </div>
+                                </div>
 
                                 {/* Removed Feature Flags */}
-                                {removedFeatureFlags.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {removedFeatureFlags.map(flag => (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {removedFeatureFlags.length > 0 ? (
+                                        removedFeatureFlags.map(flag => (
                                             <div key={flag.name} className="glass-card rounded-2xl p-4 opacity-60 hover:opacity-100 transition">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex-1">
@@ -2287,9 +2285,15 @@
                                                     </button>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                        ))
+                                    ) : (
+                                        <div className="col-span-2 glass-card rounded-2xl p-8 text-center">
+                                            <div className="text-tertiary text-sm">
+                                                Removed feature flags will appear here.
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
