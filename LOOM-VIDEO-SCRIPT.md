@@ -133,6 +133,8 @@ This is code deletion, NEW code creation, AND multi-file dependency management -
 
 "I ran into a Chrome/Safari caching bug where the browser aggressively cached API responses and JavaScript files. After merging PRs on GitHub, the dashboard still showed 'Pending' states because it served stale cached data.
 
+**How I found it:** Opening F12 Developer Tools and checking the Network tab revealed files were being served from disk cache with '(memory cache)' status instead of fetching fresh content from the server.
+
 **Multi-Layered Solution:**
 
 1. **Client-Side Meta Tags** - HTML headers tell browser: never cache this page
