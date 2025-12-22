@@ -2439,20 +2439,30 @@
 
                                 if (pullResponse && pullResponse.ok) {
                                     console.log('✅ Git pull successful - local branch is now synced');
-                                    console.log('💡 Page will reload to apply changes once you close or sync');
                                 } else {
                                     console.log('⚠️ Auto-pull not available (proxy server not running)');
-                                    console.log('💡 Manually run: git pull personal cognition-dashboard-devin-integration');
                                 }
                             } catch (err) {
                                 console.log('⚠️ Auto-pull failed:', err.message);
                             }
 
-                            // DON'T auto-complete - let user see confirmation and manually sync
-                            // User can click "Sync" button or reload page to see updated state
+                            // Show success message for 1.5 seconds, then auto-complete the transition
+                            setTimeout(() => {
+                                console.log(`🎉 Auto-completing ${type} for ${feature.name}...`);
 
-                            // Keep success state visible - don't auto-clear
-                            setManualCheckInProgress(false); // Unlock auto-sync
+                                // Call the appropriate completion function based on type
+                                if (type === 'removal') {
+                                    completeRemoval(feature);
+                                } else if (type === 'restoration') {
+                                    completeRestoration(feature);
+                                }
+
+                                // Clear success state
+                                setMergeSuccess(null);
+                                setManualCheckInProgress(false); // Unlock auto-sync
+
+                                console.log(`✅ ${feature.name} successfully transitioned to ${type === 'removal' ? 'Removed' : 'Active'} state`);
+                            }, 1500); // Show "Merge Complete!" for 1.5 seconds before transition
 
                             return true;
                         }
@@ -2687,8 +2697,8 @@
                                 </>
                             )}
 
-                            {/* Pending Restoration PRs */}
-                            {pendingRestoration.length > 0 && (
+                            {/* Pending Restoration PRs - Only Game Modes */}
+                            {pendingRestoration.filter(p => !featureFlagsData.some(f => f.name === p.name || f.displayName === p.name) && !newFeatureFlags.some(f => f.name === p.name || f.displayName === p.name)).length > 0 && (
                                 <>
                                     <div className="relative mb-4">
                                         <div className="absolute inset-0 flex items-center">
@@ -2702,7 +2712,9 @@
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3 mb-8">
-                                        {pendingRestoration.map(feature => (
+                                        {pendingRestoration
+                                            .filter(p => !featureFlagsData.some(f => f.name === p.name || f.displayName === p.name) && !newFeatureFlags.some(f => f.name === p.name || f.displayName === p.name))
+                                            .map(feature => (
                                             <div key={feature.name} className="glass-card rounded-2xl p-4 border-2 border-blue-500/30">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex-1">
@@ -2881,6 +2893,80 @@
                                                             </a>
                                                             <button
                                                                 onClick={() => checkAndCompleteMerge(feature, 'removal')}
+                                                                disabled={checkingMerge === feature.name || mergeSuccess === feature.name}
+                                                                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
+                                                                    mergeSuccess === feature.name
+                                                                        ? 'bg-emerald-500/30 text-emerald-300 border-2 border-emerald-400'
+                                                                        : checkingMerge === feature.name
+                                                                        ? 'bg-gray-500/20 text-gray-400 cursor-wait'
+                                                                        : 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
+                                                                }`}
+                                                            >
+                                                                {mergeSuccess === feature.name ? (
+                                                                    <>
+                                                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                        </svg>
+                                                                        Merge Complete!
+                                                                    </>
+                                                                ) : checkingMerge === feature.name ? (
+                                                                    <>
+                                                                        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full spinner" />
+                                                                        Checking...
+                                                                    </>
+                                                                ) : (
+                                                                    'Check Merge'
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Pending Restoration PRs for Feature Flags */}
+                                {pendingRestoration.filter(p => featureFlagsData.some(f => f.name === p.name || f.displayName === p.name) || newFeatureFlags.some(f => f.name === p.name || f.displayName === p.name)).length > 0 && (
+                                    <>
+                                        <div className="relative mb-4 mt-8">
+                                            <div className="absolute inset-0 flex items-center">
+                                                <div className="w-full border-t border-blue-500/30"></div>
+                                            </div>
+                                            <div className="relative flex justify-center">
+                                                <span className="px-4 text-sm font-medium text-blue-400 glass-card rounded-full py-1 border border-blue-500/30">
+                                                    Pending Restoration
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 mb-8">
+                                            {pendingRestoration
+                                                .filter(p => featureFlagsData.some(f => f.name === p.name || f.displayName === p.name) || newFeatureFlags.some(f => f.name === p.name || f.displayName === p.name))
+                                                .map(feature => (
+                                                    <div key={feature.name} className="glass-card rounded-2xl p-4 border-2 border-blue-500/30">
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div className="flex-1">
+                                                                <h3 className="text-sm font-semibold text-primary mb-1">{feature.displayName || feature.name}</h3>
+                                                                <p className="text-xs text-blue-400 mb-2">
+                                                                    PR #{feature.prNumber} • {Math.floor((Date.now() - feature.createdAt) / 60000)}m ago
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <a
+                                                                href={feature.prUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all flex items-center justify-center gap-1"
+                                                            >
+                                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
+                                                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                                                                </svg>
+                                                                View PR
+                                                            </a>
+                                                            <button
+                                                                onClick={() => checkAndCompleteMerge(feature, 'restoration')}
                                                                 disabled={checkingMerge === feature.name || mergeSuccess === feature.name}
                                                                 className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
                                                                     mergeSuccess === feature.name
