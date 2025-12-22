@@ -534,7 +534,7 @@
             {
                 name: "jumpmod",
                 displayName: "jumpmod",
-                description: "Physics constant controlling Mario's jump height",
+                description: "Physics constant (1.056) controlling Mario's jump height (lower = jump higher)",
                 file: "Source/settings/objects.js",
                 lineStart: 230,
                 lineEnd: 230,
@@ -1152,18 +1152,24 @@
                                         value={oldFlagName}
                                         onChange={(e) => setOldFlagName(e.target.value)}
                                         className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all"
-                                        placeholder="e.g., useEnhancedJumpPhysics"
+                                        placeholder={`e.g., ${feature.name}`}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-secondary mb-1.5">New Feature Flag Name</label>
+                                    <label className="block text-xs font-medium text-secondary mb-1.5">New Feature Flag Name (press Tab to autocomplete)</label>
                                     <input
                                         type="text"
                                         value={newFlagName}
                                         onChange={(e) => setNewFlagName(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Tab' && !newFlagName) {
+                                                e.preventDefault();
+                                                setNewFlagName(`${oldFlagName}_v2`);
+                                            }
+                                        }}
                                         className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all"
-                                        placeholder="e.g., useEnhancedJumpPhysics_v2"
+                                        placeholder={`e.g., ${oldFlagName}_v2 (press Tab)`}
                                     />
                                 </div>
 
@@ -1174,7 +1180,7 @@
                                         onChange={(e) => setInstruction(e.target.value)}
                                         rows={3}
                                         className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-primary focus:outline-none focus:border-purple-500/50 transition-all resize-none"
-                                        placeholder="Describe what changes should be made..."
+                                        placeholder={`Current value: ${feature.currentValue || 'N/A'}. Note: lower value = jump higher. Describe what changes should be made...`}
                                     />
                                 </div>
                             </div>
