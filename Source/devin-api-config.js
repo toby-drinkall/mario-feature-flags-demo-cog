@@ -340,12 +340,13 @@ Task Steps (send a message after EACH):
    - Create git branch: recover-${feature.name.toLowerCase().replace(/\s/g, '-')}-from-${replacedByName.toLowerCase().replace(/\s/g, '-')}
    - Commit all ${feature.filesAffected.length} files atomically
    - Commit message: "Recover ${feature.name} by reversing replacement with ${replacedByName}"
-   - Create PR to cognition-dashboard-devin-integration with title: "Recover ${feature.name} feature flag"
+   - CRITICAL: Base branch MUST be "cognition-dashboard-devin-integration" NOT "experiment/enhanced-jump-physics" or any other branch
+   - Use GitHub CLI command explicitly: gh pr create --base cognition-dashboard-devin-integration --head [your-branch] --title "Recover ${feature.name} feature flag"
    - PR description should include:
      * ${replacedByName} → DELETED (not tracked)
      * ${feature.name} = ${feature.currentValue || 'unknown'} → RESTORED
      * Files modified (${feature.filesAffected.length} files)
-   Send message: "Step 7 complete: Created PR #[number] at [url]"
+   Send message: "Step 7 complete: Created PR #[number] to cognition-dashboard-devin-integration at [url]"
 
 8. Finalize
    Send message: "Step 8 complete: All steps complete. ${feature.name} restored, ${replacedByName} removed. Game returned to previous state."
@@ -469,12 +470,17 @@ Task Steps (send a message after EACH):
 7. Create Atomic PR
    - Create git branch: replace-${oldFlagName.toLowerCase().replace(/\s/g, '-')}-with-${newFlagName.toLowerCase().replace(/\s/g, '-')}
    - Commit all ${feature.filesAffected.length} files atomically with message: "Replace ${oldFlagName} with ${newFlagName} (${instruction})"
-   - Create PR to cognition-dashboard-devin-integration with title: "Replace ${oldFlagName} with ${newFlagName}"
+   - CRITICAL: Base branch MUST be "cognition-dashboard-devin-integration" NOT "experiment/enhanced-jump-physics" or any other branch
+   - Create PR with:
+     * BASE BRANCH: cognition-dashboard-devin-integration (MANDATORY - this is where all PRs must go)
+     * HEAD BRANCH: replace-${oldFlagName.toLowerCase().replace(/\s/g, '-')}-with-${newFlagName.toLowerCase().replace(/\s/g, '-')}
+     * TITLE: "Replace ${oldFlagName} with ${newFlagName}"
+   - Use GitHub CLI command explicitly: gh pr create --base cognition-dashboard-devin-integration --head [your-branch] --title "Replace ${oldFlagName} with ${newFlagName}"
    - PR description should include:
      * ${oldFlagName} = ${feature.currentValue || 'unknown'} → REMOVED (can be restored later)
      * ${newFlagName} → ADDED implementing: ${instruction}
      * Files modified (${feature.filesAffected.length} files)
-   Send message: "Step 7 complete: Created PR #[number] at [url]"
+   Send message: "Step 7 complete: Created PR #[number] to cognition-dashboard-devin-integration at [url]"
 
 8. Finalize
    Send message: "Step 8 complete: All steps complete. ${oldFlagName} will move to 'Removed Feature Flags' after merge. ${newFlagName} will be active."
