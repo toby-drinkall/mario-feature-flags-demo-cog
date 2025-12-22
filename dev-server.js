@@ -1,6 +1,9 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process');
+const util = require('util');
+const execPromise = util.promisify(exec);
 
 const app = express();
 const PORT = 8000;
@@ -90,6 +93,33 @@ app.all('/api/devin/*', async (req, res) => {
     }
 });
 
+// Git pull endpoint - automatically pulls latest changes after Devin merge
+app.post('/git-pull', async (req, res) => {
+    console.log('[Git Pull] Starting automatic pull after PR merge...');
+
+    try {
+        // Pull from personal remote (where Devin merges PRs)
+        const { stdout, stderr } = await execPromise('git pull personal cognition-dashboard-devin-integration --no-rebase');
+
+        console.log('[Git Pull] Success!');
+        if (stdout) console.log(stdout);
+        if (stderr) console.log(stderr);
+
+        res.json({
+            success: true,
+            message: 'Git pull successful',
+            output: stdout + '\n' + stderr
+        });
+    } catch (error) {
+        console.error('[Git Pull] Error:', error.message);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            output: error.stdout + '\n' + error.stderr
+        });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`\n  Mario Feature Flag Dashboard`);
@@ -98,5 +128,6 @@ app.listen(PORT, () => {
     console.log(`  Dashboard: http://localhost:${PORT}/cognition-dashboard-premium.html`);
     console.log(`  Game: http://localhost:${PORT}/index.html`);
     console.log(`\n  Devin API proxy available at /api/devin/*`);
+    console.log(`  Git auto-pull enabled for PR merges`);
     console.log(`  Press Ctrl+C to stop\n`);
 });

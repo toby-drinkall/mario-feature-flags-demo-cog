@@ -277,6 +277,129 @@ Task Steps (send a message after EACH):
         };
     },
 
+    // Recover feature flag with reverse replacement (for feature flags that were replaced)
+    async recoverFeatureFlagWithReplacement(feature, replacedByName, removalPR, onProgress) {
+        console.log(`🤖 Devin: Recovering "${feature.name}" by reversing replacement with "${replacedByName}"`);
+
+        const prompt = `
+Recover the "${feature.name}" feature flag by REVERSING its replacement with "${replacedByName}".
+
+CONTEXT:
+- Original feature flag: ${feature.name} = ${feature.currentValue || 'unknown'} (was REMOVED)
+- Replacement feature flag: ${replacedByName} (currently ACTIVE)
+- Removal PR: #${removalPR}
+- This is a REVERSE REPLACEMENT operation
+
+GOAL:
+Delete ${replacedByName} completely and restore ${feature.name} to return to the previous game state.
+${replacedByName} should NOT appear in "Removed Feature Flags" - it should be completely gone.
+
+IMPORTANT PHYSICS RELATIONSHIP:
+This is a physics constant where LOWER value = HIGHER jump (inverse relationship).
+- Original value: ${feature.name} = ${feature.currentValue || 'unknown'}
+- Do NOT change the value, restore it exactly as it was
+
+CRITICAL PROGRESS TRACKING REQUIREMENT:
+You MUST use your "send message to user" action after COMPLETING each step below. This allows real-time tracking on the dashboard. Do NOT batch multiple steps - send ONE message per completed step.
+
+Task Steps (send a message after EACH):
+
+1. Load Backup
+   - Find and load the backup of ${feature.name} = ${feature.currentValue || 'unknown'}
+   - This backup was created when ${feature.name} was replaced
+   Send message: "Step 1 complete: Loaded backup of ${feature.name}"
+
+2. Identify Replacement Constant
+   - Locate ${replacedByName} in ${feature.file}
+   - Identify all ${feature.filesAffected.length} files that reference ${replacedByName}
+   Send message: "Step 2 complete: Found ${replacedByName} in ${feature.filesAffected.length} files"
+
+3. Remove Replacement Constant Completely
+   - DELETE ${replacedByName} definition from ${feature.file}
+   - DELETE all references to ${replacedByName} from the codebase
+   - ${replacedByName} will be completely gone (NOT tracked in removed section)
+   Send message: "Step 3 complete: Completely removed ${replacedByName} from codebase"
+
+4. Restore Original Constant
+   - ADD ${feature.name} = ${feature.currentValue || 'unknown'} back to ${feature.file}
+   - Restore exact original value from backup
+   Send message: "Step 4 complete: Restored ${feature.name} with original value"
+
+5. Update All Code References
+   - Update all code that used ${replacedByName} to now use ${feature.name}
+   - Across all ${feature.filesAffected.length} files
+   - Game returns to previous state with ${feature.name}
+   Send message: "Step 5 complete: Updated ${feature.filesAffected.length} files to use ${feature.name}"
+
+6. Run Tests
+   - Lint all modified files
+   - Run game to verify original behavior is restored
+   Send message: "Step 6 complete: All tests passed. Original behavior restored."
+
+7. Create Atomic PR
+   - Create git branch: recover-${feature.name.toLowerCase().replace(/\s/g, '-')}-from-${replacedByName.toLowerCase().replace(/\s/g, '-')}
+   - Commit all ${feature.filesAffected.length} files atomically
+   - Commit message: "Recover ${feature.name} by reversing replacement with ${replacedByName}"
+   - Create PR with title: "Recover ${feature.name} feature flag"
+   - PR description should include:
+     * ${replacedByName} → DELETED (not tracked)
+     * ${feature.name} = ${feature.currentValue || 'unknown'} → RESTORED
+     * Files modified (${feature.filesAffected.length} files)
+   Send message: "Step 7 complete: Created PR #[number] at [url]"
+
+8. Finalize
+   Send message: "Step 8 complete: All steps complete. ${feature.name} restored, ${replacedByName} removed. Game returned to previous state."
+
+STRUCTURED OUTPUT (fill this in your final response):
+{
+  "pr_number": [PR number],
+  "backup_file_path": "[full path to backup used]",
+  "branch_name": "recover-${feature.name.toLowerCase().replace(/\s/g, '-')}-from-${replacedByName.toLowerCase().replace(/\s/g, '-')}",
+  "commit_sha": "[git commit hash]",
+  "removed_constant": "${replacedByName}",
+  "restored_constant": "${feature.name}",
+  "restored_value": "${feature.currentValue || 'unknown'}",
+  "files_modified": ${feature.filesAffected.length}
+}
+        `.trim();
+
+        const session = await this.createSession({ prompt });
+        console.log(`✓ Devin session created: ${session.url}`);
+
+        if (onProgress) {
+            onProgress({
+                session_created: true,
+                session_id: session.sessionId,
+                url: session.url,
+                status_enum: 'initializing',
+                messages: []
+            });
+        }
+
+        const sessionUrl = session.url;
+        const onProgressWithUrl = onProgress ? (status) => {
+            if (!status.url && sessionUrl) {
+                status.url = sessionUrl;
+            }
+            onProgress(status);
+        } : null;
+
+        const finalStatus = await this.pollSessionStatus(session.sessionId, onProgressWithUrl);
+        const structuredOutput = finalStatus.structured_output || {};
+
+        return {
+            sessionId: session.sessionId,
+            url: session.url,
+            prNumber: structuredOutput.pr_number || finalStatus.pull_request || 'N/A',
+            branch: `recover-${feature.name.toLowerCase().replace(/\s/g, '-')}-from-${replacedByName.toLowerCase().replace(/\s/g, '-')}`,
+            removedConstant: replacedByName,
+            restoredConstant: feature.name,
+            restoredValue: feature.currentValue || 'unknown',
+            status: finalStatus.status_enum,
+            messages: finalStatus.messages || []
+        };
+    },
+
     // Replace feature flag (high-level function)
     async replaceFeatureFlag(oldFlagName, newFlagName, instruction, feature, onProgress) {
         console.log(`🤖 Devin: Replacing "${oldFlagName}" with "${newFlagName}"`);
