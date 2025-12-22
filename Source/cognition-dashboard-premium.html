@@ -851,7 +851,10 @@
                         if (currentStep < steps.length - 1) {
                             setCurrentStep(currentStep + 1);
                         } else {
-                            setTimeout(() => onComplete(prNumber), 500);
+                            setTimeout(() => onComplete({
+                                prNumber,
+                                replacementInfo: type === 'replace-flag' ? { oldFlagName, newFlagName, instruction } : null
+                            }), 500);
                         }
                     }, step.duration);
 
@@ -1050,6 +1053,45 @@
                                     return prev;
                                 });
                             }, 2000); // Wait 2 seconds for progress callbacks to complete
+                        } else if (type === 'replace-flag') {
+                            // Call real Devin API to replace feature flag
+                            const result = await window.DevinAPI.replaceFeatureFlag(
+                                oldFlagName,
+                                newFlagName,
+                                instruction,
+                                feature,
+                                onProgress
+                            );
+
+                            console.log('✓ Devin API result:', result);
+                            console.log('   Session ID:', result.sessionId);
+                            console.log('   Session URL:', result.url);
+                            console.log('   Old constant:', result.oldConstant);
+                            console.log('   New constant:', result.newConstant);
+                            setSessionId(result.sessionId);
+                            setSessionUrl(result.url);
+                            setPrNumber(result.prNumber);
+
+                            setSubDetails({
+                                init: [`Session ID: ${result.sessionId}`, `URL: ${result.url}`],
+                                backup: [`Backup: ${result.backupPath}`],
+                                analyze: [
+                                    `Old constant: ${result.oldConstant} = ${result.oldValue}`,
+                                    `New constant: ${result.newConstant}`
+                                ],
+                                pr: [`PR #${result.prNumber}`, `Branch: ${result.branch}`]
+                            });
+
+                            // Wait for progress callback to process all steps
+                            setTimeout(() => {
+                                setCurrentStep(prev => {
+                                    if (prev < steps.length) {
+                                        console.log('⚠️ Progress callback didn\'t reach final step, marking complete now');
+                                        return steps.length;
+                                    }
+                                    return prev;
+                                });
+                            }, 2000);
                         } else {
                             // Call real Devin API to recover feature
                             const result = await window.DevinAPI.recoverFeatureFlag(feature, feature.prNumber, onProgress);
@@ -1295,7 +1337,10 @@
                                 // If complete AND not stopped early, call onComplete to move feature
                                 // If stopped or cancelled, just close modal without moving feature
                                 if (isComplete && !pauseSuccess) {
-                                    onComplete(prNumber);
+                                    onComplete({
+                                        prNumber,
+                                        replacementInfo: type === 'replace-flag' ? { oldFlagName, newFlagName, instruction } : null
+                                    });
                                 } else {
                                     onCancel();
                                 }
@@ -1452,7 +1497,10 @@
                                 onClick={async () => {
                                     // If complete, close modal
                                     if (isComplete) {
-                                        onComplete(prNumber);
+                                        onComplete({
+                                            prNumber,
+                                            replacementInfo: type === 'replace-flag' ? { oldFlagName, newFlagName, instruction } : null
+                                        });
                                         return;
                                     }
 
@@ -1618,6 +1666,7 @@
                         // Parse title to extract action and feature name
                         let action = null;
                         let featureName = null;
+                        let newFeatureName = null;
                         let isFeatureFlag = false;
 
                         if (title.match(/^Remove (.+) feature flag$/i)) {
@@ -1628,6 +1677,12 @@
                         } else if (title.match(/^Recover (.+) feature flag$/i)) {
                             action = 'recover';
                             featureName = title.match(/^Recover (.+) feature flag$/i)[1];
+                            isFeatureFlag = featureFlagsData.some(f => f.displayName === featureName || f.name === featureName);
+                        } else if (title.match(/^Replace (.+) with (.+)$/i)) {
+                            action = 'replace';
+                            const match = title.match(/^Replace (.+) with (.+)$/i);
+                            featureName = match[1];
+                            newFeatureName = match[2];
                             isFeatureFlag = featureFlagsData.some(f => f.displayName === featureName || f.name === featureName);
                         }
 
@@ -1694,6 +1749,33 @@
                                 // Merged recovery PR - feature is restored (back to active)
                                 featureStates.delete(featureName); // Remove from tracking = back to active
                             }
+                        } else if (action === 'replace') {
+                            if (isOpen && !isMerged) {
+                                // Open replacement PR - old flag pending removal, new flag will be created
+                                featureStates.set(featureName, {
+                                    state: 'pending_replacement',
+                                    pr,
+                                    feature,
+                                    prNumber,
+                                    prUrl: pr.html_url,
+                                    createdAt: new Date(pr.created_at).getTime(),
+                                    backupId: `feature-backup-${featureName.toLowerCase().replace(/\s/g, '-')}-${new Date(pr.created_at).getTime()}.json`,
+                                    newFeatureName: newFeatureName
+                                });
+                            } else if (isMerged) {
+                                // Merged replacement PR - old flag is removed
+                                featureStates.set(featureName, {
+                                    state: 'removed',
+                                    pr,
+                                    feature,
+                                    prNumber,
+                                    prUrl: pr.html_url,
+                                    removedAt: new Date(pr.merged_at).getTime(),
+                                    backupId: `feature-backup-${featureName.toLowerCase().replace(/\s/g, '-')}-${new Date(pr.created_at).getTime()}.json`,
+                                    replacedBy: newFeatureName
+                                });
+                                // New flag is now active - no tracking needed
+                            }
                         }
                     });
 
@@ -1701,13 +1783,16 @@
                     featureStates.forEach((data, featureName) => {
                         const isFlag = featureFlagsData.some(f => f.displayName === featureName || f.name === featureName || f.name === data.feature.name);
 
-                        if (data.state === 'pending_removal') {
+                        if (data.state === 'pending_removal' || data.state === 'pending_replacement') {
                             newPendingRemoval.push({
                                 ...data.feature,
                                 prNumber: data.prNumber,
                                 prUrl: data.prUrl,
                                 createdAt: data.createdAt,
-                                backupId: data.backupId
+                                backupId: data.backupId,
+                                replacementInfo: data.newFeatureName ? {
+                                    newFeatureName: data.newFeatureName
+                                } : undefined
                             });
                         } else if (data.state === 'pending_restoration') {
                             newPendingRestoration.push({
@@ -1909,6 +1994,31 @@
                 setEnabledFeatures(newEnabled);
                 localStorage.setItem('enabled_features', JSON.stringify(newEnabled));
                 setActiveModal(null);
+            };
+
+            const handleReplaceComplete = (feature, prNumber, oldFlagName, newFlagName, instruction) => {
+                // Put in "pending removal" state for tracking - the old flag will be removed
+                const pending = {
+                    ...feature,
+                    createdAt: Date.now(),
+                    prNumber,
+                    prUrl: `https://github.com/toby-drinkall/mario-feature-flags-demo-cog/pull/${prNumber}`,
+                    backupId: `feature-backup-${feature.name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}.json`,
+                    replacementInfo: {
+                        oldFlagName,
+                        newFlagName,
+                        instruction
+                    }
+                };
+                const newPending = [...pendingRemoval, pending];
+                setPendingRemoval(newPending);
+                localStorage.setItem('pending_removal', JSON.stringify(newPending));
+
+                setActiveModal(null);
+
+                console.log(`✓ PR #${prNumber} created for replacement: ${oldFlagName} → ${newFlagName}`);
+                console.log(`   Instruction: ${instruction}`);
+                console.log(`   Waiting for merge to complete replacement.`);
             };
 
             // Check if a GitHub PR is merged
@@ -2434,13 +2544,22 @@
                         <AutomationModal
                             feature={activeModal.feature}
                             type={activeModal.type}
-                            onComplete={(prNumber) => {
+                            onComplete={(result) => {
+                                const { prNumber, replacementInfo } = result;
                                 if (activeModal.type === 'remove') {
                                     handleRemoveComplete(activeModal.feature, prNumber);
                                 } else if (activeModal.type === 'enable') {
                                     handleEnableComplete(activeModal.feature, prNumber);
                                 } else if (activeModal.type === 'return-to-staging') {
                                     handleReturnToStagingComplete(activeModal.feature, prNumber);
+                                } else if (activeModal.type === 'replace-flag') {
+                                    handleReplaceComplete(
+                                        activeModal.feature,
+                                        prNumber,
+                                        replacementInfo.oldFlagName,
+                                        replacementInfo.newFlagName,
+                                        replacementInfo.instruction
+                                    );
                                 } else {
                                     handleRecoverComplete(activeModal.feature, prNumber);
                                 }

@@ -276,6 +276,121 @@ Task Steps (send a message after EACH):
             messages: finalStatus.messages || []
         };
     },
+
+    // Replace feature flag (high-level function)
+    async replaceFeatureFlag(oldFlagName, newFlagName, instruction, feature, onProgress) {
+        console.log(`🤖 Devin: Replacing "${oldFlagName}" with "${newFlagName}"`);
+
+        const prompt = `
+Replace the "${oldFlagName}" feature flag with "${newFlagName}" that implements: "${instruction}"
+
+CONTEXT:
+Current constant: ${oldFlagName} = ${feature.currentValue || 'unknown'}
+New constant: ${newFlagName}
+User instruction: ${instruction}
+Files affected: ${feature.filesAffected.length} files
+
+CRITICAL PROGRESS TRACKING REQUIREMENT:
+You MUST use your "send message to user" action after COMPLETING each step below. This allows real-time tracking on the dashboard. Do NOT batch multiple steps - send ONE message per completed step.
+
+Task Steps (send a message after EACH):
+
+1. Analyze Codebase
+   - Identify all ${feature.filesAffected.length} files that reference ${oldFlagName}
+   - Calculate changes needed for: "${instruction}"
+   Send message: "Step 1 complete: Found ${oldFlagName} in ${feature.filesAffected.length} files. Analyzed requirements."
+
+2. Create Backups
+   - Backup all ${feature.filesAffected.length} affected files before making changes
+   Send message: "Step 2 complete: Created backups at [backup-directory]"
+
+3. Remove Dead Code
+   - If there are any if/else branches for the old flag, clean them up
+   - Keep only the active code path
+   Send message: "Step 3 complete: Removed dead code branches"
+
+4. Rename Constant
+   - Replace all references of ${oldFlagName} → ${newFlagName} across all affected files
+   Send message: "Step 4 complete: Renamed ${oldFlagName} → ${newFlagName} across ${feature.filesAffected.length} files"
+
+5. Update Constant Value
+   - Implement the change: "${instruction}"
+   - Update the value in ${feature.file}
+   Send message: "Step 5 complete: Updated constant value to implement: ${instruction}"
+
+6. Run Tests
+   - Lint all modified files
+   - Run game to verify changes work correctly
+   - Verify: ${instruction}
+   Send message: "Step 6 complete: All tests passed. Changes verified."
+
+7. Create Atomic PR
+   - Create git branch: replace-${oldFlagName.toLowerCase().replace(/\s/g, '-')}-with-${newFlagName.toLowerCase().replace(/\s/g, '-')}
+   - Commit all ${feature.filesAffected.length} files atomically with message: "Replace ${oldFlagName} with ${newFlagName} (${instruction})"
+   - Create PR with title: "Replace ${oldFlagName} with ${newFlagName}"
+   - PR description should include:
+     * Summary of changes (rename + value change)
+     * Files modified (${feature.filesAffected.length} files)
+     * Implementation: ${instruction}
+   Send message: "Step 7 complete: Created PR #[number] at [url]"
+
+8. Finalize
+   Send message: "Step 8 complete: All steps complete. ${newFlagName} is ready for merge."
+
+STRUCTURED OUTPUT (fill this in your final response):
+{
+  "pr_number": [PR number],
+  "backup_file_path": "[full path to backup directory]",
+  "branch_name": "replace-${oldFlagName.toLowerCase().replace(/\s/g, '-')}-with-${newFlagName.toLowerCase().replace(/\s/g, '-')}",
+  "commit_sha": "[git commit hash]",
+  "old_constant": "${oldFlagName}",
+  "new_constant": "${newFlagName}",
+  "old_value": "${feature.currentValue || 'unknown'}",
+  "new_value": "[calculated new value]",
+  "instruction": "${instruction}",
+  "files_modified": ${feature.filesAffected.length}
+}
+        `.trim();
+
+        const session = await this.createSession({ prompt });
+        console.log(`✓ Devin session created: ${session.url}`);
+
+        if (onProgress) {
+            onProgress({
+                session_created: true,
+                session_id: session.sessionId,
+                url: session.url,
+                status_enum: 'initializing',
+                messages: []
+            });
+        }
+
+        const sessionUrl = session.url;
+        const onProgressWithUrl = onProgress ? (status) => {
+            if (!status.url && sessionUrl) {
+                status.url = sessionUrl;
+            }
+            onProgress(status);
+        } : null;
+
+        const finalStatus = await this.pollSessionStatus(session.sessionId, onProgressWithUrl);
+        const structuredOutput = finalStatus.structured_output || {};
+
+        return {
+            sessionId: session.sessionId,
+            url: session.url,
+            prNumber: structuredOutput.pr_number || finalStatus.pull_request || 'N/A',
+            backupPath: structuredOutput.backup_file_path || 'N/A',
+            branch: `replace-${oldFlagName.toLowerCase().replace(/\s/g, '-')}-with-${newFlagName.toLowerCase().replace(/\s/g, '-')}`,
+            oldConstant: oldFlagName,
+            newConstant: newFlagName,
+            oldValue: feature.currentValue || 'unknown',
+            newValue: structuredOutput.new_value || 'calculated',
+            instruction: instruction,
+            status: finalStatus.status_enum,
+            messages: finalStatus.messages || []
+        };
+    },
 };
 
 // Export for use in dashboard
