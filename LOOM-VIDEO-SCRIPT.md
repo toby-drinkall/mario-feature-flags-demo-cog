@@ -10,10 +10,9 @@ What's impressive is the **Replace** operation - Devin must understand code depe
 ### The Stack
 "Let me show you the tech stack:
 - **Frontend**: Pure React (no framework) with Tailwind CSS and Framer Motion
-- **Backend**: Express.js server hosting from Source/ directory
-- **AI Integration**: Devin API for automated code modifications
-- **Git Workflow**: Atomic PRs to cognition-dashboard-devin-integration branch
-- **GitHub Sync**: Dashboard polls GitHub API every page load to sync PR states"
+- **Backend**: Local server connecting to Devin API and GitHub API
+- **GitHub Integration**: Auto-syncs PR states on page load - fixed a caching bug where dashboard showed outdated merge statuses
+- **Git Workflow**: Atomic PRs to cognition-dashboard-devin-integration branch"
 
 ### Key Decision: Why Devin?
 "I chose Devin because feature flag operations require:
@@ -156,8 +155,9 @@ Here's the complexity: jumpmod is a physics constant referenced in **5 interdepe
 **Why it's necessary:**
 - Dashboard state is localStorage (survives page reload)
 - GitHub is source of truth
-- Auto-sync on page load prevents stale state
-- Manual sync after merging a PR
+- Without sync, dashboard showed stale PR states and missed completed merges (caching bug)
+- Auto-sync on page load fixes this issue
+- Manual sync button available after merging a PR
 
 **After clicking 'Check Merge':** It polls GitHub every 500ms for 5 seconds. When merge confirmed, it auto-pulls the git changes and prompts you to reload to see updated code."
 
