@@ -671,24 +671,6 @@ FullScreenMario.FullScreenMario.settings.mods = {
                     "21": [ ["Bowser"] ]
                 }
             }
-        }, {
-            "name": "Super Fireballs",
-            "description": "Fireballs blow up solids, and Mario has unlimited.",
-            "author": {
-                "name": "Josh Goldberg",
-                "email": "josh@fullscreenmario.com"
-            },
-            "enabled": false,
-            "events": {
-                "onModEnable": function (mod) {
-                    this.ObjectMaker.getFunction("solid").prototype.nofire = 0;
-                    this.ObjectMaker.getFunction("solid").prototype.firedeath = 1;
-                },
-                "onModDisable": function (mod) {
-                    this.ObjectMaker.getFunction("solid").prototype.nofire = 2;
-                    this.ObjectMaker.getFunction("solid").prototype.firedeath = 0;
-                }
-            }
         }
     ]
 };
