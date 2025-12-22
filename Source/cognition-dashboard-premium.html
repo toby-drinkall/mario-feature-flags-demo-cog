@@ -2462,8 +2462,23 @@
                 !enabledFeatures.find(e => e.name === m.name) &&
                 !pendingRemoval.find(p => p.name === m.name)
             );
-            // Count toggled-on features as "currently enabled"
-            const enabledCount = Object.values(modStates).filter(Boolean).length;
+            // Count toggled-on game modes
+            const toggledModsCount = Object.values(modStates).filter(Boolean).length;
+
+            // Count active feature flags (both hardcoded and dynamic, excluding removed/pending)
+            const activeFeatureFlagsCount = featureFlagsData.filter(f =>
+                f.enabled &&
+                !removedFeatureFlags.find(r => r.name === f.name) &&
+                !pendingRemoval.find(p => p.name === f.name)
+            ).length +
+            newFeatureFlags.filter(f =>
+                f.enabled &&
+                !removedFeatureFlags.find(r => r.name === f.name) &&
+                !pendingRemoval.find(p => p.name === f.name)
+            ).length;
+
+            // Total currently enabled = toggled game modes + active feature flags
+            const enabledCount = toggledModsCount + activeFeatureFlagsCount;
             const devinIntegrated = isDevinAPIConfigured();
 
             return (
