@@ -532,20 +532,23 @@
         // Feature Flags data - actual features from the codebase
         const featureFlagsData = [
             {
-                name: "useEnhancedJumpPhysics",
-                displayName: "Enhanced Jump Physics",
-                description: "Improved jump physics with momentum calculations",
-                file: "Source/settings/features.js",
-                lineStart: 9,
-                lineEnd: 9,
+                name: "jumpmod",
+                displayName: "jumpmod",
+                description: "Physics constant controlling Mario's jump height",
+                file: "Source/settings/objects.js",
+                lineStart: 230,
+                lineEnd: 230,
                 lines: 1,
                 category: "physics",
                 filesAffected: [
-                    { file: "Source/settings/features.js", lines: 1 },
-                    { file: "Source/settings/math.ts", lineStart: 13, lineEnd: 23, lines: 11 },
-                    { file: "Source/settings/math.js", lineStart: 30, lineEnd: 33, lines: 4 }
+                    { file: "Source/settings/objects.js", lineStart: 230, lineEnd: 230, lines: 1 },
+                    { file: "Source/settings/math.ts", lineStart: 12, lineEnd: 14, lines: 3 },
+                    { file: "Source/settings/math.js", lineStart: 31, lineEnd: 31, lines: 1 },
+                    { file: "Source/settings/maps.js", lineStart: 12, lineEnd: 12, lines: 1 },
+                    { file: "Source/FullScreenMario.d.ts", lineStart: 7, lineEnd: 7, lines: 1 }
                 ],
-                enabled: true // Currently active in the codebase
+                enabled: true, // Currently active in the codebase
+                currentValue: "1.056"
             }
         ];
 

@@ -227,11 +227,7 @@ FullScreenMario.FullScreenMario.settings.objects = {
             "onMake": FullScreenMario.FullScreenMario.prototype.initializeArea,
             "setBackground": FullScreenMario.FullScreenMario.prototype.setAreaBackground,
             "floor": 104,
-            "jumpmod_v2": (function() {
-                var value = 0.528;
-                console.log('🔧 Physics Config Loaded: jumpmod_v2 =', value, '(expecting 0.528 for 2x jump height)');
-                return value;
-            })(),
+            "jumpmod": 1.056,
             "maxyvel": FullScreenMario.FullScreenMario.unitsize * 2,
             "maxyvelinv": FullScreenMario.FullScreenMario.unitsize * -3.5,
             "onPlayerDeathTimeout": 280,
