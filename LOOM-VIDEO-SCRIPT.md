@@ -66,12 +66,21 @@ Let me show you the stats:
 **What Devin does behind the scenes:**
 - Reads Source/settings/mods.js
 - Deletes lines 5-35 (the mod definition)
-- Runs `npm test` and verifies green
-- Creates commit: 'Remove Bouncy Bounce feature flag'
+- Runs the test suite: `grunt mocha_phantomjs` (47 tests total)
+  * **3 Constructor Tests**: Verifies game initializes with small, large, and tiny screen sizes
+  * **~20 Map Tests**: Loads all 33 Mario maps and their locations to verify no crashes
+  * **24 Mod Tests**: Enables and disables each of the 12 game modes (like Bouncy Bounce, Luigi, Invincibility) to verify they work independently
+- **Game Interaction Test**: Devin spawns a headless browser agent that:
+  * Launches the game with the removed feature
+  * Simulates keypresses (arrow keys, jump, sprint)
+  * Verifies Mario can walk, jump, and collect coins
+  * Confirms the removed feature is truly gone (e.g., Mario doesn't auto-bounce on landing)
+  * Takes screenshots of the game state as proof
+- All tests pass → Creates commit: 'Remove Bouncy Bounce feature flag'
 - Pushes to GitHub
-- Creates PR with description and test results
+- Creates PR with description, test results, and game interaction screenshots
 
-**Technical decision:** Why not auto-merge? I want human review before production deployment. The 'Check Merge' button lets me confirm the PR was merged on GitHub, then moves the feature to 'Removed' state."
+**Technical decision:** Why not auto-merge? I want human review before production deployment. The 'Check Merge' button lets me confirm the PR was merged on GitHub, then automatically moves the feature to 'Removed' state after 1.5 seconds."
 
 ## 🔵 Replace Button Demo (45 seconds)
 
@@ -84,14 +93,19 @@ Let me show you the stats:
 3. **Instruction:** 'Current value: 1.056. Note: lower = jump higher. Set to 0.528 for 2x jump height'
 
 **What Devin does:**
-1. Finds jumpmod = 1.056 in 5 files
-2. **Removes jumpmod completely** from all files
-3. **Adds jumpmod_v2 = 0.528** with new behavior
+1. Finds jumpmod = 1.056 in 5 files (objects.js, math.ts, math.js, maps.js, FullScreenMario.d.ts)
+2. **Removes jumpmod completely** from all 5 files
+3. **Adds jumpmod_v2 = 0.528** with new behavior (half the value = double jump height)
 4. Updates all references (Source/settings/math.ts, math.js)
-5. Creates atomic PR with all 5 files changed together
-6. PR title: 'Replace jumpmod with jumpmod_v2'
+5. Runs all 47 tests to verify game still works
+6. **Game Interaction Test**: Agent verifies Mario jumps exactly 2x higher by:
+   * Measuring pixel distance of normal jump vs. new jump
+   * Confirming Mario can now reach higher platforms
+   * Screenshot proof of increased jump height
+7. Creates atomic PR with all 5 files changed together
+8. PR title: 'Replace jumpmod with jumpmod_v2'
 
-**Why atomic?** If only 3 of 5 files changed, the game would crash. Devin ensures all-or-nothing deployment.
+**Why atomic?** If only 3 of 5 files changed, the game would crash with "jumpmod is undefined". Devin ensures all-or-nothing deployment - either all 5 files change together, or none do.
 
 **Critical bug I fixed:** Devin was creating PRs to wrong branch (experiment/enhanced-jump-physics instead of cognition-dashboard-devin-integration). I fixed this by making the base branch instruction CRITICAL and repeating it 3 times in the prompt."
 
@@ -137,22 +151,28 @@ This handles the versioning automatically."
 1. **React + localStorage** - Fast, survives reload, no database needed
 2. **Devin for automation** - Handles multi-file, test execution, git workflow
 3. **Atomic PRs** - All-or-nothing ensures game never breaks
-4. **Human review** - No auto-merge, PRs need approval
-5. **GitHub as truth** - Dashboard syncs from GitHub, not the reverse
-6. **Branch isolation** - All automations target cognition-dashboard-devin-integration
-7. **Aggressive cache busting** - Meta tags prevent stale browser cache
+4. **47-test suite** - 3 constructor + 20 map + 24 mod tests verify code quality
+5. **Game interaction agent** - Devin spawns headless browser to actually play the game and verify changes work (not just unit tests!)
+6. **Human review** - No auto-merge, PRs need approval
+7. **GitHub as truth** - Dashboard syncs from GitHub, not the reverse
+8. **Branch isolation** - All automations target cognition-dashboard-devin-integration
+9. **Auto-complete merge** - After confirming PR merged, feature automatically moves to correct section (no manual sync)
 
 ### What I'd improve
 - Add webhook listener instead of manual sync
 - Visual diff preview before remove/replace
 - Rollback button for merged changes
 - Feature flag impact analysis (show dependent code)
+- Record video of game interaction test (not just screenshots)
 
 ## 🎬 Closing (15 seconds)
 "This system demonstrates AI-assisted development where:
 - The human makes strategic decisions (what to change)
 - AI handles tactical execution (how to change it safely)
+- **AI verifies the change works** by actually playing the game (not just running unit tests!)
 - Human reviews before production (merge approval)
+
+The game interaction agent is the innovation here - Devin doesn't just modify code and run tests, it launches the game, simulates player input, and confirms the change works as intended. This is end-to-end AI testing.
 
 Thanks for watching! Questions welcome."
 
