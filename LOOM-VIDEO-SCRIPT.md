@@ -3,7 +3,7 @@
 ## 🎯 Overview (30 seconds)
 "Welcome! Today I'm demonstrating an automated feature flag management system I built that uses Devin AI to manage code changes in a Mario Bros game. This dashboard lets me remove, recover, and replace feature flags with zero manual coding - Devin writes the code, runs all tests, and creates pull requests ready for review.
 
-What's impressive is the **Replace** operation - Devin must understand code dependencies across 5 different files, remove old code, write new code, migrate all references, and verify the changes work by actually playing the game. This is enterprise-level refactoring done autonomously."
+What's impressive is the **Replace** operation - Devin must understand code dependencies across 5 different files, remove old code, write new code, migrate all references, and verify the changes work by actually playing the game. This is enterprise-level automated code modification across multiple interdependent files."
 
 ## 🏗️ Architecture Overview (1 minute)
 
