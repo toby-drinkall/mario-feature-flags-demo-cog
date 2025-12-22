@@ -1,207 +1,156 @@
 # 5-Minute Loom Video Script: Devin-Powered Feature Flag Automation
 
-## 🎯 Overview (30 seconds)
-"Welcome! Today I'm demonstrating an automated feature flag management system I built that uses Devin AI to manage code changes in a Mario Bros game. This dashboard lets me remove, recover, and replace feature flags with zero manual coding - Devin writes the code, runs all tests, and creates pull requests ready for review.
+## 🎯 Opening (30 seconds)
+"I built a full-stack feature flag management dashboard for a Mario Bros game with automated code modifications through Devin AI.
 
-What's impressive is the **Replace** operation - Devin must understand code dependencies across 5 different files, remove old code, write new code, migrate all references, and verify the changes work by actually playing the game. This is enterprise-level automated code modification across multiple interdependent files."
+**Tech Stack:**
+- Frontend: Pure React with Tailwind CSS
+- Backend: Local server connecting to Devin API and GitHub API
+- Why Devin? Multi-file coordination, test execution, and automated PR creation - I just click a button."
 
-## 🏗️ Architecture Overview (1 minute)
+---
 
-### The Stack
-"Let me show you the tech stack:
-- **Frontend**: Pure React (no framework) with Tailwind CSS and Framer Motion
-- **Backend**: Local server connecting to Devin API and GitHub API
-- **GitHub Integration**: Polls GitHub API to sync PR states - solved a Chrome/Safari over-caching issue where the browser served stale data and missed completed merges
-- **Cache Busting**: HTTP headers force fresh content delivery on every page load
-- **Git Workflow**: Atomic PRs to cognition-dashboard-devin-integration branch"
+## 📊 Dashboard Overview (30 seconds)
 
-### Key Decision: Why Devin?
-"I chose Devin because feature flag operations require:
-1. **Multi-file coordination** - A single feature flag like 'jumpmod' appears in 5+ files
-2. **Test execution** - Every change must pass the test suite
-3. **Atomic commits** - All files must change together
-4. **Branch management** - Create branches, commit, push, create PR
-5. **Human review** - PRs need approval before merge
+**Two Tab System:**
+1. **Testing Game Modes** - Toggleable features that players can select from in-game menu
+2. **Feature Flags** - Physics constants in the code (gravity, jump height, speed)
 
-Devin handles all of this autonomously. I just click a button."
+**Stats:**
+- Total Features: All flags we can remove, replace, or recover via dashboard
+- Currently Enabled: Features actively affecting game physics, appearance, or gameplay
 
-## 📊 Dashboard Walkthrough (1.5 minutes)
+**Intermediary States:**
+- Pending Removal (yellow) - PR created, awaiting merge
+- Pending Restoration (blue) - Recovery PR in progress
+- Removed (grayed) - Code deleted, can be recovered
 
-### Two Tab System
-"The dashboard has two tabs:
-1. **Testing Game Modes** - Toggle-able features you can test in-game
-2. **Feature Flags** - Physics constants that control game behavior
+---
 
-Let me show you the stats:
-- Total Features: 19 (15 game modes + 4 feature flags)
-- Currently Enabled: Dynamic count of active features
-- Total Removed: Tracks deleted features"
+## 🔴 Remove Demo - Bouncy Bounce (2 minutes)
 
-### Feature States
-"Features flow through these states:
-- **Active** → Normal display with toggle/replace buttons
-- **Pending Removal** → Yellow border, PR created but not merged
-- **Removed** → Grayed out, code deleted from repo
-- **Pending Restoration** → Blue border, recovery PR in progress"
+### Before Clicking Remove
+"Before any automation, Devin runs a full test suite including linting and actually plays the game with a headless browser to verify the change works."
 
-## 🔴 Remove Button Demo (1 minute)
+### Show Bouncy Bounce in Game
+[Toggle it on to show the bounce effect]
 
-### Click Remove on "Bouncy Bounce"
-"When I click Remove on a game mode:
+### Click Remove
+"This is a straightforward automation - let me show you exactly what Devin does based on the prompt I designed:
 
-**What happens in the dashboard:**
-1. Modal appears showing 9-step automation progress
-2. Each step updates with live status from Devin:
-   - Initializing Devin session
-   - Locating feature flag (finds lines 5-35 in Source/settings/mods.js)
-   - Creating backup (JSON snapshot)
-   - Removing 31 lines of code
-   - Running test suite (all 47 tests)
-   - Creating git branch: `remove-bouncy-bounce`
-   - Committing changes
-   - Creating PR to cognition-dashboard-devin-integration
-   - Finalizing automation
+**The Prompt:**
+1. Locate feature flag in Source/settings/mods.js (lines 5-35)
+2. Create backup
+3. Remove feature code (31 lines deleted)
+4. Run tests (linting + game interaction)
+5. Create branch: remove-bouncy-bounce
+6. Commit changes
+7. Create PR to cognition-dashboard-devin-integration
+8. Finalize
 
-3. PR link appears - click to see it on GitHub
-4. 'Check Merge' button becomes available
+**Dashboard Modal:**
+- Shows live progress from Devin's session
+- Click the Devin session link to watch Devin work in real-time (you never have to interact with Devin directly)
+- Each step updates as Devin sends progress messages"
 
-**What Devin does behind the scenes:**
-- Reads Source/settings/mods.js (single file)
-- Deletes lines 5-35 (the mod definition)
-- Runs the test suite: `grunt mocha_phantomjs` (47 tests total)
-  * **3 Constructor Tests**: Verifies game initializes with small, large, and tiny screen sizes
-  * **~20 Map Tests**: Loads all 33 Mario maps and their locations to verify no crashes
-  * **24 Mod Tests**: Enables and disables each of the 12 game modes (like Bouncy Bounce, Luigi, Invincibility) to verify they work independently
-- **Game Interaction Test**: Devin spawns a headless browser agent that:
-  * Launches the game with the removed feature
-  * Simulates keypresses (arrow keys, jump, sprint)
-  * Verifies Mario can walk, jump, and collect coins
-  * Confirms the removed feature is truly gone (e.g., Mario doesn't auto-bounce on landing)
-  * Takes screenshots of the game state as proof
-- All tests pass → Creates commit: 'Remove Bouncy Bounce feature flag'
-- Pushes to GitHub
-- Creates PR with description, test results, and game interaction screenshots
+### View PR
+[Click PR link]
+"PR created with all changes - ready for review."
 
-**This is straightforward** - single file, pure deletion, no dependencies."
+### Check Merge Button
+"After clicking 'Check Merge', it polls GitHub every 500ms for 5 seconds. When merge detected, it auto-pulls git changes."
 
-## 🟢 Recover Button Demo (45 seconds)
+[Merge PR on GitHub, click Check Merge]
 
-### Click Restore on removed feature
-"Recovery adds complexity - Devin must reverse the removal:
+### Show Game
+[Reload game, show Bouncy Bounce no longer in menu]
+"Feature completely removed from the game."
 
-**What Devin does:**
-1. **Loads backup JSON** from removal step (contains exact code that was deleted)
-2. **Analyzes removal PR** on GitHub to understand:
-   - Which files were modified
-   - Which lines were deleted
-   - What the original state was
-3. **Restores exact original code** to all affected files
-4. Runs all 47 tests to verify game still works
-5. **Game Interaction Test**: Agent plays the game to confirm feature is back
-6. Creates recovery branch: `recover-bouncy-bounce`
-7. Creates PR: 'Recover Bouncy Bounce feature flag'
+---
 
-**Key insight:** Recovery requires Devin to understand git history and PR structure - it's not just 'paste code back', it's intelligently reversing a previous automation."
+## 🟢 Recover Demo - Bouncy Bounce (45 seconds)
 
-## 🔵 Replace Button Demo - The Complex Case (1 minute)
+### Click Restore
+"Recovery is different - Devin doesn't just paste code back. Based on my recovery prompt, Devin:
 
-### Click Replace on "jumpmod"
-"Now for the **most complex automation** - Replace is fundamentally different from Remove and Recover.
+**The Recovery Process:**
+1. Load backup file
+2. Analyze the removal PR #[number] on GitHub to understand what was deleted
+3. Restore exact original code to Source/settings/mods.js
+4. Run tests + game interaction
+5. Create branch: recover-bouncy-bounce
+6. Commit and create PR
 
-**Replace Modal shows 3 inputs:**
-1. **Current flag name:** jumpmod
-2. **New flag name:** jumpmod_v2 (Tab auto-fills '_v2')
-3. **Instruction:** 'Current value: 1.056. Note: lower = jump higher. Set to 0.528 for 2x jump height'
+The key difference: Devin analyzes git history and intelligently reverses the previous automation."
 
-**What makes Replace different:**
+[View PR, merge, show game has feature back]
 
-**Remove & Recover = Code Deletion/Restoration**
-- Remove: Delete 1 file worth of code
-- Recover: Restore from backup
+---
 
-**Replace = Code Deletion + NEW Code Creation + Multi-File Coordination**
+## 🔵 Replace Demo - jumpmod (1.5 minutes)
 
-Here's the complexity: jumpmod is a physics constant referenced in **5 interdependent files**:
-- objects.js (defines the constant)
-- math.ts (calculates jump velocity)
-- math.js (compiled JavaScript version)
-- maps.js (applies to game levels)
-- FullScreenMario.d.ts (TypeScript type definition)
+### Introduce Feature Flags Tab
+"Feature Flags are different from game modes - they're physics constants affecting how Mario moves. Replacing them is significantly more complex because one constant appears in 5+ interdependent files.
 
-**What Devin does:**
-1. **Finds all 5 files** containing jumpmod (different names, different directories)
-2. **Removes jumpmod completely** from all 5 files
-3. **Writes NEW CODE**: Adds jumpmod_v2 = 0.528 to all 5 files
-4. **Migrates all references** - updates every place the old constant was used
-5. **Verifies compilation** - TypeScript must compile, .ts and .js must match
-6. **Tests the new behavior** - Agent plays game and measures Mario now jumps 2x higher
-7. **Creates atomic PR** - All 5 files change together, or none change (prevents crashes)
+Let me show you the most impressive automation."
 
-**Why this matters for gameplay:**
-- Remove/Recover don't change how the game works - they just turn features on/off
-- **Replace changes the game mechanics** - Mario jumps higher, runs faster, falls slower
-- This lets you iterate on game physics without manual coding
-- Devin writes the new code AND updates all dependencies automatically
+### Click Replace on jumpmod
+"The modal has 3 input boxes:
 
-**The result:** Players can now jump to previously unreachable platforms - the game experience fundamentally changed through automation."
+**Why 3 boxes?**
+1. Current flag name: jumpmod
+2. New flag name: jumpmod_v2 (press Tab for auto-fill with '_v2')
+3. Instruction: 'Current value: 1.056. Note: lower = jump higher. Set to 0.528 for 2x jump height'
 
-## 🔄 GitHub Sync System (30 seconds)
+The instruction affects the prompt Devin receives - Devin must calculate the new value based on the physics relationship."
 
-### The Caching Problem
-"I ran into a Chrome/Safari bug where the browser aggressively cached API responses and localStorage state. After merging PRs on GitHub, the dashboard still showed features as 'Pending' because the browser served stale cached data instead of fetching fresh PR states.
+### Explain What Devin Does
+"Based on my replace prompt, Devin performs a complex multi-phase automation:
+
+**The Replace Process:**
+1. **Analyze Codebase** - Find jumpmod in 5 files (objects.js, math.ts, math.js, maps.js, FullScreenMario.d.ts)
+2. **Create Backups** - Save original state of all 5 files
+3. **Remove Old Constant** - Delete jumpmod entirely (allows it to appear in 'Removed' section for future recovery)
+4. **Add New Constant** - Calculate jumpmod_v2 = 0.528 using inverse physics relationship (lower = higher jump)
+5. **Update References** - Migrate all code from jumpmod → jumpmod_v2 across 5 files
+6. **Run Tests** - Lint all files + play game to verify 2x jump height
+7. **Create Atomic PR** - All 5 files commit together or fail together
+
+This is code deletion, NEW code creation, AND multi-file dependency management - not just deletion like Remove."
+
+[View PR showing all 5 files changed]
+
+### Show Game with jumpmod_v2
+[Launch game, show HUD displaying jumpmod_v2]
+"The heads-up display confirms jumpmod_v2 is active. Watch Mario jump."
+
+[Play game, demonstrate 2x jump height, capture flag]
+"Mario can now reach platforms that were previously impossible - the game mechanics fundamentally changed through automation."
+
+---
+
+## 🔄 Caching Bug & Solution (30 seconds)
+
+"I ran into a Chrome/Safari caching bug where the browser aggressively cached API responses. After merging PRs on GitHub, the dashboard still showed 'Pending' states because it served stale cached data.
 
 **How we solved it:**
+1. **Cache-Busting Headers** - Force browser to fetch fresh content on every page load (Cache-Control: no-cache, no-store, must-revalidate)
+2. **GitHub Sync Button** - Directly polls GitHub API, bypasses browser cache entirely
+3. **Auto-Sync on Load** - Runs GitHub sync when dashboard loads to ensure localStorage matches GitHub
 
-1. **Cache Busting Headers** - HTTP Cache-Control, Pragma, and Expires headers force the browser to always fetch fresh HTML/JS instead of using cached versions
+This guarantees the dashboard always reflects the true PR state."
 
-2. **GitHub Sync Button** - Directly polls GitHub's PR API (bypassing all browser caches) and parses PR titles:
-   - **'Remove [name] feature flag'** → Mark as pending removal
-   - **'Recover [name] feature flag'** → Mark as pending restoration
-   - **'Replace [old] with [new]'** → Track replacement with new flag creation
+---
 
-3. **Auto-Sync on Page Load** - Runs the GitHub sync automatically when you load the dashboard to ensure localStorage matches GitHub's actual state
+## 🎯 Future Improvements (30 seconds)
 
-**What this assures:**
-- Dashboard always reflects the true state of your PRs on GitHub
-- No stale 'Pending' states after merges complete
-- localStorage (dashboard cache) stays synchronized with GitHub (source of truth)
-- Manual sync button available any time you need to force a refresh
+"Things I'd improve:
 
-**After clicking 'Check Merge':** It polls GitHub every 500ms for 5 seconds. When merge confirmed, it auto-pulls the git changes and prompts you to reload to see updated code."
+1. **Multiple Concurrent Automations** - Handle multiple operations without switching tabs, show progress as percentage so you can do other tasks
 
-## 🎓 Technical Decisions Summary (30 seconds)
+2. **Cleaner Removal Approach** - Instead of deleting 30-100 lines of code and saving backups in separate files, add a simple `enabled: true/false` property to feature definitions. Toggle it off to disable, keep the code in place for cleaner recovery.
 
-### Key Choices
-1. **Pure React + localStorage** - No framework overhead, fast, survives reload, no database needed
-2. **Devin for automation** - Handles multi-file coordination, test execution, git workflow
-3. **Atomic PRs** - All-or-nothing ensures game never breaks (critical for 5-file replacements)
-4. **47-test suite** - 3 constructor + 20 map + 24 mod tests verify code quality
-5. **Game interaction agent** - Devin spawns headless browser to actually play the game and verify changes work (not just unit tests!)
-6. **Dependency graph analysis** - Devin must trace references across TypeScript, JavaScript, and definition files to perform replacements
-7. **Progressive complexity** - Remove (1 file) → Recover (1 file + git history) → Replace (5 interdependent files)
-8. **Human review** - No auto-merge, PRs need approval before production
-9. **GitHub as truth** - Dashboard syncs from GitHub API, not the reverse
-10. **Branch isolation** - All automations target cognition-dashboard-devin-integration
-11. **Auto-complete merge** - After confirming PR merged, feature automatically moves to correct section (no manual sync)
-
-### What I'd improve
-- Add webhook listener instead of manual sync polling
-- Visual dependency graph before replace (show which files will change)
-- Rollback button for merged changes (one-click revert)
-- Feature flag impact analysis (preview affected code before changes)
-- Record video of game interaction test (not just screenshots)
-- Parallel test execution for faster feedback
-
-## 🎬 Closing (15 seconds)
-"This system demonstrates AI-assisted development where:
-- The human makes strategic decisions (what to change)
-- AI handles tactical execution (how to change it safely)
-- **AI verifies the change works** by actually playing the game (not just running unit tests!)
-- Human reviews before production (merge approval)
-
-The game interaction agent is the innovation here - Devin doesn't just modify code and run tests, it launches the game, simulates player input, and confirms the change works as intended. This is end-to-end AI testing.
-
-Thanks for watching! Questions welcome."
+Thanks for watching - questions welcome!"
 
 ---
 
@@ -210,24 +159,26 @@ Thanks for watching! Questions welcome."
 **Before recording:**
 - [ ] Restart dev server: `node watch-and-serve.js`
 - [ ] Open game in new window
-- [ ] Verify Devin API configured (check badge says "Devin API Ready")
+- [ ] Verify Devin API configured
 - [ ] Check git status clean
 - [ ] Open GitHub repo in separate tab
 - [ ] Clear browser cache (Cmd+Shift+R)
 
 **During recording:**
-- [ ] Show browser at http://localhost:8000/cognition-dashboard-premium.html
-- [ ] Toggle game mode to show "Currently Enabled" indicator
-- [ ] Click Remove, show full automation modal
-- [ ] Click View PR link to show GitHub
-- [ ] Show Check Merge button workflow
-- [ ] Show Feature Flags tab with Replace modal
-- [ ] Fill in replacement form (use Tab for auto-fill)
-- [ ] Show PR created on GitHub
-- [ ] Click Sync button to demonstrate sync behavior
+- [ ] Dashboard at http://localhost:8000/cognition-dashboard-premium.html
+- [ ] Show Bouncy Bounce toggle in game
+- [ ] Click Remove, show automation modal with live Devin session link
+- [ ] View PR, merge, show Check Merge button
+- [ ] Show game without feature
+- [ ] Click Restore, view PR, merge
+- [ ] Show Feature Flags tab
+- [ ] Click Replace on jumpmod, show 3-box modal
+- [ ] View PR with 5 files changed
+- [ ] Show game HUD with jumpmod_v2
+- [ ] Play game to capture flag demonstrating higher jump
+- [ ] Click Sync button to demonstrate GitHub sync
 
 **After recording:**
 - [ ] Link to GitHub repo in description
-- [ ] Link to Devin docs: https://docs.devin.ai
 - [ ] Add timestamps in comments
 - [ ] Tag: #devin #ai-automation #feature-flags #react
