@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feature Management Dashboard</title>
-    <!-- v1.7 - Manual sync only, no auto-sync -->
+    <!-- v1.8 - Active polling for Check Merge -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -759,9 +759,9 @@
                     <div className="flex items-center gap-2 ml-4">
                         <button
                             onClick={() => onRemove(feature)}
-                            className="px-3 py-1.5 text-xs font-medium btn-remove text-red-400 hover:text-red-300 hover:bg-red-500/10 dark:text-red-400 dark:hover:text-red-300 rounded-lg transition-all"
+                            className="px-3 py-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 dark:text-purple-400 dark:hover:text-purple-300 rounded-lg transition-all"
                         >
-                            Remove
+                            Replace
                         </button>
                     </div>
                 </div>
@@ -1782,15 +1782,22 @@
             // Check if a GitHub PR is merged
             const checkPRMerged = async (prNumber) => {
                 try {
+                    console.log(`🔍 Checking PR #${prNumber} on GitHub...`);
                     const response = await fetch(`https://api.github.com/repos/toby-drinkall/mario-feature-flags-demo-cog/pulls/${prNumber}`);
                     if (!response.ok) {
-                        console.error('Failed to check PR status');
+                        console.error(`❌ Failed to check PR status: ${response.status} ${response.statusText}`);
                         return false;
                     }
                     const pr = await response.json();
+                    console.log(`   PR #${prNumber} details:`, {
+                        title: pr.title,
+                        state: pr.state,
+                        merged: pr.merged,
+                        merged_at: pr.merged_at
+                    });
                     return pr.merged === true;
                 } catch (err) {
-                    console.error('Error checking PR merge status:', err);
+                    console.error('❌ Error checking PR merge status:', err);
                     return false;
                 }
             };
@@ -1858,42 +1865,58 @@
                 setCheckingMerge(feature.name);
                 setMergeSuccess(null);
                 setManualCheckInProgress(true); // Lock auto-sync
-                console.log(`🔍 Checking merge status for PR #${feature.prNumber}...`);
+                console.log(`🔍 Actively checking for merge on PR #${feature.prNumber}...`);
+
+                const maxAttempts = 10; // 10 attempts over 5 seconds
+                const delayBetweenChecks = 500; // 500ms between checks
+                let attempt = 0;
 
                 try {
-                    // Check GitHub immediately - just one quick check
-                    const isMerged = await checkPRMerged(feature.prNumber);
+                    // Keep checking until merged or timeout
+                    while (attempt < maxAttempts) {
+                        attempt++;
+                        console.log(`   Attempt ${attempt}/${maxAttempts}: Checking GitHub...`);
 
-                    if (isMerged) {
-                        console.log(`✅ PR #${feature.prNumber} is CONFIRMED MERGED on GitHub!`);
+                        const isMerged = await checkPRMerged(feature.prNumber);
 
-                        // Show success message
-                        setCheckingMerge(null);
-                        setMergeSuccess(feature.name);
+                        if (isMerged) {
+                            console.log(`✅ PR #${feature.prNumber} is CONFIRMED MERGED on GitHub! (found on attempt ${attempt})`);
 
-                        // Complete the action immediately
-                        if (type === 'removal') {
-                            completeRemoval(feature);
-                        } else if (type === 'restoration') {
-                            completeRestoration(feature);
+                            // Show success message
+                            setCheckingMerge(null);
+                            setMergeSuccess(feature.name);
+
+                            // Complete the action immediately
+                            if (type === 'removal') {
+                                completeRemoval(feature);
+                            } else if (type === 'restoration') {
+                                completeRestoration(feature);
+                            }
+
+                            // Clear success message after 2 seconds
+                            setTimeout(() => {
+                                setMergeSuccess(null);
+                                setManualCheckInProgress(false); // Unlock auto-sync
+                            }, 2000);
+
+                            return true;
                         }
 
-                        // Clear success message after 2 seconds
-                        setTimeout(() => {
-                            setMergeSuccess(null);
-                            setManualCheckInProgress(false); // Unlock auto-sync
-                        }, 2000);
-
-                        return true;
-                    } else {
-                        console.log(`⏳ PR #${feature.prNumber} not merged yet`);
-                        setCheckingMerge(null);
-                        setManualCheckInProgress(false);
-                        alert(`PR #${feature.prNumber} hasn't been merged yet. Please merge it on GitHub first.`);
-                        return false;
+                        // Wait before next check (unless it's the last attempt)
+                        if (attempt < maxAttempts) {
+                            await new Promise(resolve => setTimeout(resolve, delayBetweenChecks));
+                        }
                     }
+
+                    // Timeout - merge not detected after 5 seconds
+                    console.log(`⏳ PR #${feature.prNumber} not merged after ${attempt} attempts (5 seconds)`);
+                    setCheckingMerge(null);
+                    setManualCheckInProgress(false);
+
+                    alert(`PR #${feature.prNumber} for "${feature.name}" hasn't been merged yet.\n\nMake sure the PR is merged on GitHub and try again.`);
+                    return false;
                 } catch (err) {
-                    console.error('Error checking merge:', err);
+                    console.error('❌ Error checking merge:', err);
                     setCheckingMerge(null);
                     setManualCheckInProgress(false);
                     alert(`Error checking PR status: ${err.message}`);
@@ -2227,12 +2250,12 @@
 
                                 {/* Separator - only show if there are removed feature flags */}
                                 {removedFeatureFlags.length > 0 && (
-                                    <div className="relative mb-8">
+                                    <div className="relative mb-4 mt-8">
                                         <div className="absolute inset-0 flex items-center">
-                                            <div className="w-full border-t border-white/10 dark:border-white/10 light:border-slate-300"></div>
+                                            <div className="w-full border-t border-purple-500/30"></div>
                                         </div>
                                         <div className="relative flex justify-center">
-                                            <span className="px-4 text-sm text-tertiary glass-card rounded-full py-1">
+                                            <span className="px-4 text-sm font-medium text-purple-400 glass-card rounded-full py-1 border border-purple-500/30">
                                                 Removed Feature Flags
                                             </span>
                                         </div>
@@ -2243,11 +2266,27 @@
                                 {removedFeatureFlags.length > 0 && (
                                     <div className="grid grid-cols-2 gap-3">
                                         {removedFeatureFlags.map(flag => (
-                                            <RemovedFeatureFlagCard
-                                                key={flag.name}
-                                                feature={flag}
-                                                onRecover={(f) => setActiveModal({ type: 'recover-flag', feature: f })}
-                                            />
+                                            <div key={flag.name} className="glass-card rounded-2xl p-4 border-2 border-purple-500/30 opacity-60 hover:opacity-100 transition">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-sm font-semibold text-primary mb-1">{flag.displayName || flag.name}</h3>
+                                                        <p className="text-xs text-purple-400 mb-2">
+                                                            Removed {Math.floor((Date.now() - flag.removedAt) / 60000)}m ago
+                                                        </p>
+                                                        <div className="flex items-center gap-3 text-xs text-tertiary">
+                                                            <span>PR #{flag.prNumber}</span>
+                                                            <span>•</span>
+                                                            <span>{flag.filesAffected?.length || 0} files</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setActiveModal({ type: 'recover-flag', feature: flag })}
+                                                        className="px-3 py-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-all"
+                                                    >
+                                                        Restore
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
