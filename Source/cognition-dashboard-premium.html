@@ -1805,12 +1805,31 @@
                                         // Keep the original removal info
                                         originalRemovalPR: currentState.prNumber,
                                         removedAt: currentState.removedAt,
-                                        backupId: currentState.backupId
+                                        backupId: currentState.backupId,
+                                        replacedBy: currentState.replacedBy // Track what it was replaced by
                                     });
+
+                                    // If this feature was replaced, mark the replacement for removal too
+                                    if (currentState.replacedBy) {
+                                        const replacementName = currentState.replacedBy;
+                                        featureStates.set(replacementName, {
+                                            state: 'pending_removal_by_recovery',
+                                            pr,
+                                            prNumber,
+                                            prUrl: pr.html_url,
+                                            createdAt: new Date(pr.created_at).getTime(),
+                                            replacementFor: featureName
+                                        });
+                                    }
                                 }
                             } else if (isMerged) {
                                 // Merged recovery PR - feature is restored (back to active)
                                 featureStates.delete(featureName); // Remove from tracking = back to active
+
+                                // If this feature was replaced, also remove the replacement from tracking
+                                if (currentState && currentState.replacedBy) {
+                                    featureStates.delete(currentState.replacedBy);
+                                }
                             }
                         } else if (action === 'replace') {
                             if (isOpen && !isMerged) {
@@ -1863,7 +1882,7 @@
 
                     // Convert featureStates map to arrays for state
                     featureStates.forEach((data, featureName) => {
-                        const isFlag = featureFlagsData.some(f => f.displayName === featureName || f.name === featureName || f.name === data.feature.name);
+                        const isFlag = featureFlagsData.some(f => f.displayName === featureName || f.name === featureName || f.name === data.feature?.name);
 
                         if (data.state === 'pending_removal' || data.state === 'pending_replacement') {
                             newPendingRemoval.push({
@@ -1876,6 +1895,11 @@
                                     newFeatureName: data.newFeatureName
                                 } : undefined
                             });
+                        } else if (data.state === 'pending_removal_by_recovery') {
+                            // Replacement flag being removed by recovery PR
+                            // Don't add to any section - it will be completely deleted when recovery PR merges
+                            // Just track the name so we can filter it out from active flags
+                            console.log(`🔄 Recovery PR #${data.prNumber}: Marking ${featureName} for deletion (replacement of ${data.replacementFor})`);
                         } else if (data.state === 'pending_restoration') {
                             newPendingRestoration.push({
                                 ...data.feature,
@@ -1883,7 +1907,8 @@
                                 prUrl: data.prUrl,
                                 createdAt: data.createdAt,
                                 removedAt: data.removedAt,
-                                backupId: data.backupId
+                                backupId: data.backupId,
+                                replacedBy: data.replacedBy // Include what it was replaced by
                             });
                         } else if (data.state === 'removed') {
                             // Separate feature flags from game modes
@@ -1920,11 +1945,26 @@
                     setRemovedFeatures(newRemovedFeatures);
                     setRemovedFeatureFlags(newRemovedFeatureFlags);
 
+                    // Collect flags marked for removal by recovery PRs
+                    const flagsMarkedForDeletion = [];
+                    featureStates.forEach((data, featureName) => {
+                        if (data.state === 'pending_removal_by_recovery') {
+                            flagsMarkedForDeletion.push(featureName);
+                        }
+                    });
+
                     // Merge with existing new flags and deduplicate by name
                     const allNewFlags = [...newFeatureFlags, ...newlyCreatedFlags];
-                    const uniqueNewFlags = allNewFlags.filter((flag, index, self) =>
-                        index === self.findIndex(f => f.name === flag.name)
-                    );
+                    const uniqueNewFlags = allNewFlags
+                        .filter((flag, index, self) =>
+                            index === self.findIndex(f => f.name === flag.name)
+                        )
+                        .filter(flag => !flagsMarkedForDeletion.includes(flag.name)); // Remove flags marked for deletion
+
+                    if (flagsMarkedForDeletion.length > 0) {
+                        console.log(`   - Flags marked for deletion: ${flagsMarkedForDeletion.join(', ')}`);
+                    }
+
                     setNewFeatureFlags(uniqueNewFlags);
 
                     // Update localStorage
@@ -1947,7 +1987,11 @@
                 }
             };
 
-            // Manual sync only - no auto-sync
+            // Auto-sync on page load to fix any stale localStorage state
+            useEffect(() => {
+                console.log('🔄 Dashboard mounted - auto-syncing with GitHub to ensure clean state...');
+                syncWithGitHub();
+            }, []); // Run once on mount
 
             useEffect(() => {
                 const interval = setInterval(() => {
@@ -2280,11 +2324,7 @@
 
                                 if (pullResponse && pullResponse.ok) {
                                     console.log('✅ Git pull successful - local branch is now synced');
-                                    // Reload the page to pick up new code changes
-                                    setTimeout(() => {
-                                        console.log('🔄 Reloading page to apply code changes...');
-                                        location.reload();
-                                    }, 1000);
+                                    console.log('💡 Page will reload to apply changes once you close or sync');
                                 } else {
                                     console.log('⚠️ Auto-pull not available (proxy server not running)');
                                     console.log('💡 Manually run: git pull personal cognition-dashboard-devin-integration');
@@ -2293,18 +2333,11 @@
                                 console.log('⚠️ Auto-pull failed:', err.message);
                             }
 
-                            // Complete the action immediately
-                            if (type === 'removal') {
-                                completeRemoval(feature);
-                            } else if (type === 'restoration') {
-                                completeRestoration(feature);
-                            }
+                            // DON'T auto-complete - let user see confirmation and manually sync
+                            // User can click "Sync" button or reload page to see updated state
 
-                            // Clear success message after 2 seconds
-                            setTimeout(() => {
-                                setMergeSuccess(null);
-                                setManualCheckInProgress(false); // Unlock auto-sync
-                            }, 2000);
+                            // Keep success state visible - don't auto-clear
+                            setManualCheckInProgress(false); // Unlock auto-sync
 
                             return true;
                         }
@@ -2353,7 +2386,14 @@
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <button
-                                        onClick={syncWithGitHub}
+                                        onClick={async () => {
+                                            await syncWithGitHub();
+                                            // If there was a successful merge check, reload to show updated code
+                                            if (mergeSuccess) {
+                                                console.log('🔄 Reloading page to apply merged code changes...');
+                                                setTimeout(() => location.reload(), 500);
+                                            }
+                                        }}
                                         disabled={isSyncing}
                                         className={`px-4 py-2 glass-card rounded-xl transition-all flex items-center gap-2 text-sm font-medium ${isSyncing ? 'opacity-70 cursor-wait' : 'hover:scale-105'}`}
                                         title="Sync with GitHub"
@@ -2640,7 +2680,7 @@
                                 <div className="grid grid-cols-2 gap-3 mb-8">
                                     {/* Hardcoded feature flags */}
                                     {featureFlagsData
-                                        .filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name))
+                                        .filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name) && !pendingRestoration.find(p => p.name === flag.name))
                                         .map(flag => (
                                             <FeatureFlagCard
                                                 key={flag.name}
@@ -2651,7 +2691,7 @@
                                     }
                                     {/* Dynamically created feature flags */}
                                     {newFeatureFlags
-                                        .filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name))
+                                        .filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name) && !pendingRestoration.find(p => p.name === flag.name))
                                         .map(flag => (
                                             <FeatureFlagCard
                                                 key={flag.name}
@@ -2660,8 +2700,8 @@
                                             />
                                         ))
                                     }
-                                    {(featureFlagsData.filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name)).length === 0 &&
-                                      newFeatureFlags.filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name)).length === 0) && (
+                                    {(featureFlagsData.filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name) && !pendingRestoration.find(p => p.name === flag.name)).length === 0 &&
+                                      newFeatureFlags.filter(flag => !removedFeatureFlags.find(r => r.name === flag.name) && !pendingRemoval.find(p => p.name === flag.name) && !pendingRestoration.find(p => p.name === flag.name)).length === 0) && (
                                         <div className="col-span-2 glass-card rounded-2xl p-8 text-center">
                                             <div className="text-tertiary text-sm">
                                                 No feature flags yet. Feature flags will appear here when added.
