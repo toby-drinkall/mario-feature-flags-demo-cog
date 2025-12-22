@@ -2492,7 +2492,8 @@
             const activeFeatures = modsData.filter(m =>
                 !removedFeatures.find(r => r.name === m.name) &&
                 !enabledFeatures.find(e => e.name === m.name) &&
-                !pendingRemoval.find(p => p.name === m.name)
+                !pendingRemoval.find(p => p.name === m.name) &&
+                !pendingRestoration.find(p => p.name === m.name)
             );
             // Count toggled-on game modes
             const toggledModsCount = Object.values(modStates).filter(Boolean).length;
@@ -2501,12 +2502,14 @@
             const activeFeatureFlagsCount = featureFlagsData.filter(f =>
                 f.enabled &&
                 !removedFeatureFlags.find(r => r.name === f.name) &&
-                !pendingRemoval.find(p => p.name === f.name)
+                !pendingRemoval.find(p => p.name === f.name) &&
+                !pendingRestoration.find(p => p.name === f.name)
             ).length +
             newFeatureFlags.filter(f =>
                 f.enabled &&
                 !removedFeatureFlags.find(r => r.name === f.name) &&
-                !pendingRemoval.find(p => p.name === f.name)
+                !pendingRemoval.find(p => p.name === f.name) &&
+                !pendingRestoration.find(p => p.name === f.name)
             ).length;
 
             // Total currently enabled = toggled game modes + active feature flags
