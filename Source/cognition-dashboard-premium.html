@@ -549,6 +549,61 @@
                 ],
                 enabled: true, // Currently active in the codebase
                 currentValue: "1.056"
+            },
+            {
+                name: "gravity",
+                displayName: "gravity",
+                description: "Gravity constant controlling fall speed (lower = float more, higher = fall faster)",
+                file: "Source/settings/objects.js",
+                lineStart: 235,
+                lineEnd: 235,
+                lines: 1,
+                category: "physics",
+                filesAffected: [
+                    { file: "Source/settings/objects.js", lineStart: 235, lineEnd: 235, lines: 1 },
+                    { file: "Source/settings/maps.js", lineStart: 33, lineEnd: 40, lines: 8 },
+                    { file: "Source/settings/ui.js", lineStart: 111, lineEnd: 115, lines: 5 },
+                    { file: "Source/FullScreenMario.ts", lineStart: 64, lineEnd: 64, lines: 1 },
+                    { file: "Source/FullScreenMario.ts", lineStart: 938, lineEnd: 6308, lines: 8 },
+                    { file: "Source/FullScreenMario.d.ts", lineStart: 1, lineEnd: 1, lines: 1 }
+                ],
+                enabled: true,
+                currentValue: "0.48"
+            },
+            {
+                name: "maxspeed",
+                displayName: "maxspeed",
+                description: "Maximum running speed for Mario (higher = faster, lower = slower)",
+                file: "Source/settings/objects.js",
+                lineStart: 330,
+                lineEnd: 330,
+                lines: 1,
+                category: "movement",
+                filesAffected: [
+                    { file: "Source/settings/objects.js", lineStart: 330, lineEnd: 331, lines: 2 },
+                    { file: "Source/settings/mods.js", lineStart: 1, lineEnd: 1, lines: 1 },
+                    { file: "Source/FullScreenMario.ts", lineStart: 1, lineEnd: 1, lines: 1 },
+                    { file: "Source/FullScreenMario.d.ts", lineStart: 1, lineEnd: 1, lines: 1 }
+                ],
+                enabled: true,
+                currentValue: "5.4"
+            },
+            {
+                name: "walkspeed",
+                displayName: "walkspeed",
+                description: "Base walking speed for Mario (higher = faster walk, lower = slower walk)",
+                file: "Source/settings/objects.js",
+                lineStart: 329,
+                lineEnd: 329,
+                lines: 1,
+                category: "movement",
+                filesAffected: [
+                    { file: "Source/settings/objects.js", lineStart: 329, lineEnd: 329, lines: 1 },
+                    { file: "Source/FullScreenMario.ts", lineStart: 1, lineEnd: 1, lines: 1 },
+                    { file: "Source/FullScreenMario.d.ts", lineStart: 1, lineEnd: 1, lines: 1 }
+                ],
+                enabled: true,
+                currentValue: "2.0"
             }
         ];
 
