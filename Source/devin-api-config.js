@@ -291,14 +291,14 @@ User instruction: ${instruction}
 Files affected: ${feature.filesAffected.length} files
 
 IMPORTANT PHYSICS RELATIONSHIP:
-This is a physics constant where LOWER value = HIGHER jump.
-- Current: ${oldFlagName} = ${feature.currentValue || 'unknown'}
-- Inverse relationship: To make Mario jump TWICE as high, DIVIDE the value by 2
-- Example: If user says "jump twice as high", calculate: ${feature.currentValue || 'unknown'} / 2
-- Example: If user says "jump half as high", calculate: ${feature.currentValue || 'unknown'} * 2
+This is a physics constant where LOWER value = HIGHER jump (inverse relationship).
+- Current value: ${oldFlagName} = ${feature.currentValue || 'unknown'}
+- To make Mario jump HIGHER, use a LOWER value
+- To make Mario jump LOWER, use a HIGHER value
 
-You must CALCULATE the new value based on the user's instruction and this inverse relationship.
-Do NOT just copy the old value. INTUIT what the new value should be from: "${instruction}"
+You must CALCULATE the new value for ${newFlagName} based on the user's instruction: "${instruction}"
+Use the inverse relationship to intuit what the new value should be.
+Do NOT just copy the old value.
 
 CRITICAL PROGRESS TRACKING REQUIREMENT:
 You MUST use your "send message to user" action after COMPLETING each step below. This allows real-time tracking on the dashboard. Do NOT batch multiple steps - send ONE message per completed step.
